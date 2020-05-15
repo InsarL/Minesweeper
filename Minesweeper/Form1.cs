@@ -66,28 +66,28 @@ namespace Minesweeper
 
             if (!Mine(i, j))
             {
-                if (Mine(i++, j))
+                if (Mine(i+1, j))
                     minesAround++;
-                if (Mine(i--, j))
+                if (Mine(i-1, j))
                     minesAround++;
-                if (Mine(i, j++))
+                if (Mine(i,j+1))
                     minesAround++;
-                if (Mine(i, j--))
+                if (Mine(i, j-1))
                     minesAround++;
-                if (Mine(i--, j++))
+                if (Mine(i-1, j+1))
                     minesAround++;
-                if (Mine(i--, j--))
+                if (Mine(i+1, j-1))
                     minesAround++;
-                if (Mine(i++, j++))
+                if (Mine(i+1, j+1))
                     minesAround++;
-                if (Mine(i++, j--))
+                if (Mine(i-1, j-1))
                     minesAround++;
 
                 fieldArray[i, j] = minesAround;
             }
             
 
-            return minesAround;
+            return fieldArray[i, j];
         }
 
         void Restart()
