@@ -16,9 +16,12 @@ namespace Minesweeper
         int cellSize;
         int gameFieldSize;
         int bombCount;
+        int numberClosedCells;
         int[,] fieldArray;
+        int[,] fillField;
         Random random;
         TimeSpan time = TimeSpan.Zero;
+
 
         public Form1()
         {
@@ -27,7 +30,9 @@ namespace Minesweeper
             cellSize = 25;
             gameFieldSize = 9;
             bombCount = 0;
+            
             fieldArray = new int[gameFieldSize, gameFieldSize];
+            fillField = new int[gameFieldSize, gameFieldSize];
             random = new Random();
             Restart();
         }
@@ -38,22 +43,37 @@ namespace Minesweeper
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            for (int i = 0; i <= gameFieldSize; i++)
+
+
+            for (int i = 0; i < gameFieldSize; i++)
             {
-                e.Graphics.DrawLine(Pens.Black, 0, i * cellSize, cellSize * gameFieldSize, i * cellSize);
-                e.Graphics.DrawLine(Pens.Black, i * cellSize, 0, i * cellSize, cellSize * gameFieldSize);
+                for (int j = 0; j < gameFieldSize; j++)
+                {
+                    if (NumberBombsAroundCell(i, j) > 0)
+                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Red, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+
+                    if (fieldArray[i, j] == -1)
+                        e.Graphics.DrawString("B", new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.SaddleBrown, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                }
             }
 
             for (int i = 0; i < gameFieldSize; i++)
             {
                 for (int j = 0; j < gameFieldSize; j++)
                 {
-                    if (NumberBombsAroundCell(i,j) > 0)
-                        e.Graphics.DrawString(NumberBombsAroundCell(i,j).ToString(), SystemFonts.StatusFont, Brushes.Red, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
 
-                    if (fieldArray[i, j] == -1)
-                        e.Graphics.DrawString("B", SystemFonts.StatusFont, Brushes.SaddleBrown, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (fillField[i, j] == 1)
+                        e.Graphics.FillRectangle(Brushes.DarkGray, i * cellSize, j * cellSize, cellSize, cellSize);
+
+                    if (fillField[i, j] == 2)
+                        e.Graphics.FillRectangle(Brushes.Red, i * cellSize, j * cellSize, cellSize, cellSize);
                 }
+            }
+
+            for (int i = 0; i <= gameFieldSize; i++)
+            {
+                e.Graphics.DrawLine(Pens.Black, 0, i * cellSize, cellSize * gameFieldSize, i * cellSize);
+                e.Graphics.DrawLine(Pens.Black, i * cellSize, 0, i * cellSize, cellSize * gameFieldSize);
             }
 
         }
@@ -68,21 +88,21 @@ namespace Minesweeper
             int minesAround = 0;
             if (!Mine(i, j))
             {
-                if (Mine(i+1, j))
+                if (Mine(i + 1, j))
                     minesAround++;
-                if (Mine(i-1, j))
+                if (Mine(i - 1, j))
                     minesAround++;
-                if (Mine(i,j+1))
+                if (Mine(i, j + 1))
                     minesAround++;
-                if (Mine(i, j-1))
+                if (Mine(i, j - 1))
                     minesAround++;
-                if (Mine(i-1, j+1))
+                if (Mine(i - 1, j + 1))
                     minesAround++;
-                if (Mine(i+1, j-1))
+                if (Mine(i + 1, j - 1))
                     minesAround++;
-                if (Mine(i+1, j+1))
+                if (Mine(i + 1, j + 1))
                     minesAround++;
-                if (Mine(i-1, j-1))
+                if (Mine(i - 1, j - 1))
                     minesAround++;
 
                 fieldArray[i, j] = minesAround;
@@ -92,16 +112,19 @@ namespace Minesweeper
 
         void Restart()
         {
-            bombCount = 0;
+
             time = TimeSpan.Zero;
+            label1.Text = time.ToString();
+            bombCount = 0;
             for (int i = 0; i < gameFieldSize; i++)
             {
                 for (int j = 0; j < gameFieldSize; j++)
                 {
                     fieldArray[i, j] = 0;
+                    fillField[i, j] = 1;
                 }
             }
-           
+
             while (bombCount < 10)
             {
                 int x = random.Next(0, 8);
@@ -113,16 +136,64 @@ namespace Minesweeper
                     bombCount++;
                 }
             }
+            numberClosedCells = fillField.Length;
             pictureBox1.Refresh();
+            timer1.Stop();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             time = time.Add(TimeSpan.FromSeconds(1));
-            label1.Text = time.ToString();          
+            label1.Text = time.ToString();
         }
-            
-        
-        
+
+        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        {
+
+            if (e.Button == MouseButtons.Left)
+            {
+                timer1.Start();
+
+                
+
+                if (fillField[e.X / cellSize, e.Y / cellSize] == 1)
+                numberClosedCells -= 1;
+
+                fillField[e.X / cellSize, e.Y / cellSize] = 0;
+                pictureBox1.Refresh();
+
+                if (fillField[e.X / cellSize, e.Y / cellSize] == 0 && fieldArray[e.X / cellSize, e.Y / cellSize] == -1)
+                    Defeat();
+
+                if (numberClosedCells == bombCount)
+                    Win();
+
+                
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                timer1.Start();
+                fillField[e.X / cellSize, e.Y / cellSize] = 2;
+                pictureBox1.Refresh();
+                
+
+            }
+
+            void Defeat()
+            {
+                MessageBox.Show("Game Over");
+                Restart();
+            }
+
+            void Win()
+            {
+                
+                MessageBox.Show("Krasavcheg!!!");
+                Restart();
+            }
+        }
+
+
     }
+
 }
