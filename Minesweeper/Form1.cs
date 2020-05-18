@@ -18,7 +18,7 @@ namespace Minesweeper
         int bombCount;
         int minCounter;
         TimeSpan time = TimeSpan.Zero;
-
+        int n = 0;
         int[,] fieldArray;
         int[,] fillField;
         Random random;
@@ -67,7 +67,6 @@ namespace Minesweeper
 
                     if (NumberBombsAroundCell(i, j) == -1)
                         e.Graphics.DrawImage(Properties.Resources.folder_locked_big, i * cellSize, j * cellSize);
-
                 }
             }
 
@@ -75,7 +74,6 @@ namespace Minesweeper
             {
                 for (int j = 0; j < gameFieldSize; j++)
                 {
-
                     if (fillField[i, j] == 1)
                         e.Graphics.FillRectangle(Brushes.DarkGray, i * cellSize, j * cellSize, cellSize, cellSize);
 
@@ -89,7 +87,6 @@ namespace Minesweeper
                 e.Graphics.DrawLine(Pens.Black, 0, i * cellSize, cellSize * gameFieldSize, i * cellSize);
                 e.Graphics.DrawLine(Pens.Black, i * cellSize, 0, i * cellSize, cellSize * gameFieldSize);
             }
-
         }
 
         bool Mine(int i, int j)
@@ -139,7 +136,7 @@ namespace Minesweeper
                 }
             }
 
-            while (bombCount < 20)
+            while (bombCount < 10)
             {
                 int x = random.Next(0, 8);
                 int y = random.Next(0, 8);
@@ -168,6 +165,8 @@ namespace Minesweeper
             int x = e.X / cellSize;
             int y = e.Y / cellSize;
 
+            
+
             if (e.Button == MouseButtons.Left)
             {
                 timer1.Start();
@@ -187,8 +186,17 @@ namespace Minesweeper
                 if (fillField[x, y] == 0 && fieldArray[x, y] == -1)
                     Defeat();
 
-                if (5 == bombCount)
+                for (int i = 0; i < gameFieldSize; i++)
+                {
+                    for (int j = 0; j < gameFieldSize; j++)
+                    {
+                        if (fillField[i, j] == 1|| fillField[i, j] == 2)
+                            n++;
+                    }
+                }
+                if (n <= bombCount)
                     Win();
+                n = 0;
 
             }
             else if (e.Button == MouseButtons.Right)
@@ -295,6 +303,5 @@ namespace Minesweeper
                     DiscoveryOfEmptyCells(x - 1, y + 1);
             }
         }
-
     }
 }
