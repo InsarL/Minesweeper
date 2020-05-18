@@ -16,12 +16,12 @@ namespace Minesweeper
         int cellSize;
         int gameFieldSize;
         int bombCount;
-        int numberClosedCells;
+
+        TimeSpan time = TimeSpan.Zero;
+        
         int[,] fieldArray;
         int[,] fillField;
         Random random;
-        TimeSpan time = TimeSpan.Zero;
-
 
         public Form1()
         {
@@ -30,7 +30,7 @@ namespace Minesweeper
             cellSize = 25;
             gameFieldSize = 9;
             bombCount = 0;
-            
+
             fieldArray = new int[gameFieldSize, gameFieldSize];
             fillField = new int[gameFieldSize, gameFieldSize];
             random = new Random();
@@ -42,18 +42,29 @@ namespace Minesweeper
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
-        {
-
-
+        {         
             for (int i = 0; i < gameFieldSize; i++)
             {
                 for (int j = 0; j < gameFieldSize; j++)
                 {
-                    if (NumberBombsAroundCell(i, j) > 0)
-                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Red, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (NumberBombsAroundCell(i, j) ==1)
+                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Blue, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
 
-                    if (fieldArray[i, j] == -1)
-                        e.Graphics.DrawString("B", new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.SaddleBrown, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (NumberBombsAroundCell(i, j) == 2)
+                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Green, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+
+                    if (NumberBombsAroundCell(i, j) == 3)
+                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Indigo, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+
+                    if (NumberBombsAroundCell(i, j) == 4)
+                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkGoldenrod, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+
+                    if (NumberBombsAroundCell(i, j) >4)
+                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkRed, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+
+                    if (NumberBombsAroundCell(i, j) == -1)
+                        e.Graphics.DrawString("B", new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkViolet, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+
                 }
             }
 
@@ -125,7 +136,7 @@ namespace Minesweeper
                 }
             }
 
-            while (bombCount < 10)
+            while (bombCount < 20)
             {
                 int x = random.Next(0, 8);
                 int y = random.Next(0, 8);
@@ -136,7 +147,6 @@ namespace Minesweeper
                     bombCount++;
                 }
             }
-            numberClosedCells = fillField.Length;
             pictureBox1.Refresh();
             timer1.Stop();
         }
@@ -154,28 +164,37 @@ namespace Minesweeper
             {
                 timer1.Start();
 
-                
+                int x = e.X / cellSize;
+                int y = e.Y / cellSize;
 
-                if (fillField[e.X / cellSize, e.Y / cellSize] == 1)
-                numberClosedCells -= 1;
+                    if (fillField[x, y] == 2)
+                    fillField[x, y] = 2;
 
-                fillField[e.X / cellSize, e.Y / cellSize] = 0;
+                if (fillField[x, y] == 1)
+                    fillField[x, y] = 0;
+
+                if (fillField[x, y] == 0 && fieldArray[x, y] == 0)
+                    DiscoveryOfEmptyCells(x, y);
+
+
                 pictureBox1.Refresh();
 
-                if (fillField[e.X / cellSize, e.Y / cellSize] == 0 && fieldArray[e.X / cellSize, e.Y / cellSize] == -1)
+                if (fillField[x, y] == 0 && fieldArray[x, y] == -1)
                     Defeat();
 
-                if (numberClosedCells == bombCount)
+                if ( 5 == bombCount)
                     Win();
 
-                
             }
             else if (e.Button == MouseButtons.Right)
             {
                 timer1.Start();
-                fillField[e.X / cellSize, e.Y / cellSize] = 2;
+
+                if (fillField[e.X / cellSize, e.Y / cellSize] == 1)
+                    fillField[e.X / cellSize, e.Y / cellSize] = 2;
+                else
+                    fillField[e.X / cellSize, e.Y / cellSize] = 1;
                 pictureBox1.Refresh();
-                
 
             }
 
@@ -187,13 +206,74 @@ namespace Minesweeper
 
             void Win()
             {
-                
                 MessageBox.Show("Krasavcheg!!!");
                 Restart();
             }
+
+            bool EmptyCellIsInsideTheBoundaries(int x, int y)
+            {
+                return (x < gameFieldSize && y < gameFieldSize && x >= 0 && y >= 0
+                    && fieldArray[x, y] != -1 && fillField[x, y] == 1);
+            }
+
+            void DiscoveryOfEmptyCells(int x, int y)
+            {
+                if (EmptyCellIsInsideTheBoundaries(x + 1, y))
+                {
+                    fillField[x + 1, y] = 0;
+                    if (fieldArray[x + 1, y] == 0)
+                        DiscoveryOfEmptyCells(x + 1, y);
+                }
+
+                if (EmptyCellIsInsideTheBoundaries(x - 1, y))
+                {
+                    fillField[x - 1, y] = 0;
+                    if (fieldArray[x - 1, y] == 0)
+                        DiscoveryOfEmptyCells(x - 1, y);
+                }
+
+                if (EmptyCellIsInsideTheBoundaries(x, y + 1))
+                {
+                    fillField[x, y + 1] = 0;
+                    if (fieldArray[x, y + 1] == 0)
+                        DiscoveryOfEmptyCells(x, y + 1);
+                }
+
+                if (EmptyCellIsInsideTheBoundaries(x, y - 1))
+                {
+                    fillField[x, y - 1] = 0;
+                    if (fieldArray[x, y - 1] == 0)
+                        DiscoveryOfEmptyCells(x, y - 1);
+                }
+
+                if (EmptyCellIsInsideTheBoundaries(x + 1, y + 1))
+                {
+                    fillField[x + 1, y + 1] = 0;
+                    if (fieldArray[x + 1, y + 1] == 0)
+                        DiscoveryOfEmptyCells(x + 1, y + 1);
+                }
+
+                if (EmptyCellIsInsideTheBoundaries(x - 1, y - 1))
+                {
+                    fillField[x - 1, y - 1] = 0;
+                    if (fieldArray[x - 1, y - 1] == 0)
+                        DiscoveryOfEmptyCells(x - 1, y - 1);
+                }
+
+                if (EmptyCellIsInsideTheBoundaries(x + 1, y - 1))
+                {
+                    fillField[x + 1, y - 1] = 0;
+                    if (fieldArray[x + 1, y - 1] == 0)
+                        DiscoveryOfEmptyCells(x + 1, y - 1);
+                }
+
+                if (EmptyCellIsInsideTheBoundaries(x - 1, y + 1))
+                {
+                    fillField[x - 1, y + 1] = 0;
+                    if (fieldArray[x - 1, y + 1] == 0)
+                        DiscoveryOfEmptyCells(x - 1, y + 1);
+                }
+            }
         }
-
-
     }
-
 }
