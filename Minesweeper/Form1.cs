@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Text;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Minesweeper
@@ -16,12 +9,12 @@ namespace Minesweeper
         int cellSize;
         int gameFieldSize;
         int bombCount;
-        int minCounter;
+        int bombsNumberOnTheTableau;
         TimeSpan time = TimeSpan.Zero;
-        int n = 0;
         int[,] fieldArray;
         int[,] fillField;
         Random random;
+        (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
 
         public Form1()
         {
@@ -29,8 +22,6 @@ namespace Minesweeper
 
             cellSize = 25;
             gameFieldSize = 9;
-            bombCount = 0;
-
             fieldArray = new int[gameFieldSize, gameFieldSize];
             fillField = new int[gameFieldSize, gameFieldSize];
             random = new Random();
@@ -45,35 +36,30 @@ namespace Minesweeper
         {
             for (int i = 0; i < gameFieldSize; i++)
             {
+
                 for (int j = 0; j < gameFieldSize; j++)
                 {
-                    if (NumberBombsAroundCell(i, j) == 1)
-                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Blue, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (fieldArray[i, j] == 1)
+                        e.Graphics.DrawString(fieldArray[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Blue, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
 
-                    if (NumberBombsAroundCell(i, j) == 2)
-                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Green, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (fieldArray[i, j] == 2)
+                        e.Graphics.DrawString(fieldArray[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Green, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
 
-                    if (NumberBombsAroundCell(i, j) == 3)
-                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Red, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (fieldArray[i, j] == 3)
+                        e.Graphics.DrawString(fieldArray[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Red, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
 
-                    if (NumberBombsAroundCell(i, j) == 4)
-                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkRed, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (fieldArray[i, j] == 4)
+                        e.Graphics.DrawString(fieldArray[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkRed, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
 
-                    if (NumberBombsAroundCell(i, j) == 5)
-                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkBlue, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (fieldArray[i, j] == 5)
+                        e.Graphics.DrawString(fieldArray[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkBlue, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
 
-                    if (NumberBombsAroundCell(i, j) > 5)
-                        e.Graphics.DrawString(NumberBombsAroundCell(i, j).ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkRed, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
+                    if (fieldArray[i, j] > 5)
+                        e.Graphics.DrawString(fieldArray[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkRed, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
 
-                    if (NumberBombsAroundCell(i, j) == -1)
+                    if (fieldArray[i, j] == -1)
                         e.Graphics.DrawImage(Properties.Resources.folder_locked_big, i * cellSize, j * cellSize);
-                }
-            }
 
-            for (int i = 0; i < gameFieldSize; i++)
-            {
-                for (int j = 0; j < gameFieldSize; j++)
-                {
                     if (fillField[i, j] == 1)
                         e.Graphics.FillRectangle(Brushes.DarkGray, i * cellSize, j * cellSize, cellSize, cellSize);
 
@@ -89,53 +75,28 @@ namespace Minesweeper
             }
         }
 
-        bool Mine(int i, int j)
+        bool IsCellinGameField(int i, int j)
         {
-            return (i < gameFieldSize && j < gameFieldSize && i >= 0 && j >= 0 && fieldArray[i, j] == -1);
+            return (i < gameFieldSize && j < gameFieldSize && i >= 0 && j >= 0);
         }
 
         int NumberBombsAroundCell(int i, int j)
         {
             int minesAround = 0;
-            if (!Mine(i, j))
+            if (IsCellinGameField(i, j) && fieldArray[i, j] != -1)
             {
-                if (Mine(i + 1, j))
-                    minesAround++;
-                if (Mine(i - 1, j))
-                    minesAround++;
-                if (Mine(i, j + 1))
-                    minesAround++;
-                if (Mine(i, j - 1))
-                    minesAround++;
-                if (Mine(i - 1, j + 1))
-                    minesAround++;
-                if (Mine(i + 1, j - 1))
-                    minesAround++;
-                if (Mine(i + 1, j + 1))
-                    minesAround++;
-                if (Mine(i - 1, j - 1))
-                    minesAround++;
-
-                fieldArray[i, j] = minesAround;
+                foreach (var direction in eightDirections)
+                    if (IsCellinGameField(i + direction.X, j + direction.Y) && fieldArray[i + direction.X, j + direction.Y] == -1)
+                        minesAround++;
             }
-            return fieldArray[i, j];
+            return minesAround;
         }
 
         void Restart()
         {
-
             time = TimeSpan.Zero;
             label1.Text = time.ToString();
             bombCount = 0;
-            for (int i = 0; i < gameFieldSize; i++)
-            {
-                for (int j = 0; j < gameFieldSize; j++)
-                {
-                    fieldArray[i, j] = 0;
-                    fillField[i, j] = 1;
-                }
-            }
-
             while (bombCount < 10)
             {
                 int x = random.Next(0, 8);
@@ -147,8 +108,17 @@ namespace Minesweeper
                     bombCount++;
                 }
             }
-            minCounter = bombCount;
-            label2.Text = "Мин:" + minCounter.ToString();
+            for (int i = 0; i < gameFieldSize; i++)
+            {
+                for (int j = 0; j < gameFieldSize; j++)
+                {
+                   if (fieldArray[i, j] ==0)
+                    fieldArray[i, j] = NumberBombsAroundCell(i, j);
+                    fillField[i, j] = 1;
+                }
+            }
+            bombsNumberOnTheTableau = bombCount;
+            label2.Text = "Мин:" + bombsNumberOnTheTableau.ToString();
             pictureBox1.Refresh();
             timer1.Stop();
         }
@@ -157,15 +127,12 @@ namespace Minesweeper
         {
             time = time.Add(TimeSpan.FromSeconds(1));
             label1.Text = time.ToString();
-
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             int x = e.X / cellSize;
             int y = e.Y / cellSize;
-
-            
 
             if (e.Button == MouseButtons.Left)
             {
@@ -180,25 +147,27 @@ namespace Minesweeper
                 if (fillField[x, y] == 0 && fieldArray[x, y] == 0)
                     DiscoveryOfEmptyCells(x, y);
 
-
                 pictureBox1.Refresh();
 
                 if (fillField[x, y] == 0 && fieldArray[x, y] == -1)
                     Defeat();
+
+                int cellsClosedCount = 0;
 
                 for (int i = 0; i < gameFieldSize; i++)
                 {
                     for (int j = 0; j < gameFieldSize; j++)
                     {
                         if (fillField[i, j] == 1|| fillField[i, j] == 2)
-                            n++;
+                            cellsClosedCount++;
                     }
                 }
-                if (n <= bombCount)
+                if (cellsClosedCount == bombCount)
                     Win();
-                n = 0;
+               
 
             }
+
             else if (e.Button == MouseButtons.Right)
             {
                 timer1.Start();
@@ -206,14 +175,14 @@ namespace Minesweeper
                 if (fillField[e.X / cellSize, e.Y / cellSize] == 1)
                 {
                     fillField[e.X / cellSize, e.Y / cellSize] = 2;
-                    minCounter--;
+                    bombsNumberOnTheTableau--;
                 }
                 else
                 {
                     fillField[e.X / cellSize, e.Y / cellSize] = 1;
-                    minCounter++;
+                    bombsNumberOnTheTableau++;
                 }
-                label2.Text = "Мин:" + minCounter.ToString();
+                label2.Text = "Мин:" + bombsNumberOnTheTableau.ToString();
                 pictureBox1.Refresh();
 
             }
@@ -239,68 +208,18 @@ namespace Minesweeper
             Restart();
         }
 
-        bool EmptyCellIsInsideTheBoundaries(int x, int y)
-        {
-            return (x < gameFieldSize && y < gameFieldSize && x >= 0 && y >= 0
-                && fieldArray[x, y] != -1 && fillField[x, y] == 1);
-        }
-
         void DiscoveryOfEmptyCells(int x, int y)
         {
-            if (EmptyCellIsInsideTheBoundaries(x + 1, y))
-            {
-                fillField[x + 1, y] = 0;
-                if (fieldArray[x + 1, y] == 0)
-                    DiscoveryOfEmptyCells(x + 1, y);
-            }
-
-            if (EmptyCellIsInsideTheBoundaries(x - 1, y))
-            {
-                fillField[x - 1, y] = 0;
-                if (fieldArray[x - 1, y] == 0)
-                    DiscoveryOfEmptyCells(x - 1, y);
-            }
-
-            if (EmptyCellIsInsideTheBoundaries(x, y + 1))
-            {
-                fillField[x, y + 1] = 0;
-                if (fieldArray[x, y + 1] == 0)
-                    DiscoveryOfEmptyCells(x, y + 1);
-            }
-
-            if (EmptyCellIsInsideTheBoundaries(x, y - 1))
-            {
-                fillField[x, y - 1] = 0;
-                if (fieldArray[x, y - 1] == 0)
-                    DiscoveryOfEmptyCells(x, y - 1);
-            }
-
-            if (EmptyCellIsInsideTheBoundaries(x + 1, y + 1))
-            {
-                fillField[x + 1, y + 1] = 0;
-                if (fieldArray[x + 1, y + 1] == 0)
-                    DiscoveryOfEmptyCells(x + 1, y + 1);
-            }
-
-            if (EmptyCellIsInsideTheBoundaries(x - 1, y - 1))
-            {
-                fillField[x - 1, y - 1] = 0;
-                if (fieldArray[x - 1, y - 1] == 0)
-                    DiscoveryOfEmptyCells(x - 1, y - 1);
-            }
-
-            if (EmptyCellIsInsideTheBoundaries(x + 1, y - 1))
-            {
-                fillField[x + 1, y - 1] = 0;
-                if (fieldArray[x + 1, y - 1] == 0)
-                    DiscoveryOfEmptyCells(x + 1, y - 1);
-            }
-
-            if (EmptyCellIsInsideTheBoundaries(x - 1, y + 1))
-            {
-                fillField[x - 1, y + 1] = 0;
-                if (fieldArray[x - 1, y + 1] == 0)
-                    DiscoveryOfEmptyCells(x - 1, y + 1);
+            foreach (var direction in eightDirections)
+            { 
+                if (IsCellinGameField(x + direction.X, y + direction.Y)
+                    && fieldArray[x + direction.X, y + direction.X] != -1
+                    && fillField[x + direction.X, y + direction.X] == 1)
+                {
+                    fillField[x + direction.X, y + direction.Y] = 0;
+                    if (fieldArray[x + direction.X, y+direction.Y] == 0)
+                        DiscoveryOfEmptyCells(x + direction.X, y + direction.Y);
+                }
             }
         }
     }
