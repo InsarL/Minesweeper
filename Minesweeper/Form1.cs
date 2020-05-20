@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Minesweeper
 {
     public partial class Form1 : Form
     {
-        const int cellSize = 25;
-        const int gameFieldSize = 9;
-        const int bombCount = 10;
+        const int CellSize = 25;
+        const int GameFieldSize = 9;
+        const int BombCount = 10;
         int flagCount;
         TimeSpan elapsedTime = TimeSpan.Zero;
         int[,] fieldNumbersAndBombs;
@@ -30,74 +32,69 @@ namespace Minesweeper
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            for (int i = 0; i < gameFieldSize; i++)
+            for (int i = 0; i < GameFieldSize; i++)
             {
-
-                for (int j = 0; j < gameFieldSize; j++)
+                for (int j = 0; j < GameFieldSize; j++)
                 {
-                    if (fieldNumbersAndBombs[i, j] == 1)
-                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Blue, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
-
-                    if (fieldNumbersAndBombs[i, j] == 2)
-                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Green, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
-
-                    if (fieldNumbersAndBombs[i, j] == 3)
-                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.Red, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
-
-                    if (fieldNumbersAndBombs[i, j] == 4)
-                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkRed, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
-
-                    if (fieldNumbersAndBombs[i, j] == 5)
-                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkBlue, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
-
-                    if (fieldNumbersAndBombs[i, j] > 5)
-                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), Brushes.DarkRed, i * cellSize + cellSize / 4, j * cellSize + cellSize / 4);
-
+                    if (fieldNumbersAndBombs[i, j] > 0)
+                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), GetCellTextBrush(i,j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
                     if (fieldNumbersAndBombs[i, j] == -1)
-                        e.Graphics.DrawImage(Properties.Resources.folder_locked_big, i * cellSize, j * cellSize);
-
+                        e.Graphics.DrawImage(Properties.Resources.folder_locked_big, i * CellSize, j * CellSize);
                     if (cellStates[i, j] == 1)
-                        e.Graphics.FillRectangle(Brushes.DarkGray, i * cellSize, j * cellSize, cellSize, cellSize);
-
+                        e.Graphics.FillRectangle(Brushes.DarkGray, i * CellSize, j * CellSize, CellSize, CellSize);
                     if (cellStates[i, j] == 2)
-                        e.Graphics.DrawImage(Properties.Resources.folder_lock, i * cellSize, j * cellSize);
+                        e.Graphics.DrawImage(Properties.Resources.folder_lock, i * CellSize, j * CellSize);
+                    if (cellStates[i, j] == 3)
+                        e.Graphics.FillRectangle(Brushes.Blue, i * CellSize, j * CellSize, CellSize, CellSize);
                 }
             }
 
-            for (int i = 0; i <= gameFieldSize; i++)
+            for (int i = 0; i <= GameFieldSize; i++)
             {
-                e.Graphics.DrawLine(Pens.Black, 0, i * cellSize, cellSize * gameFieldSize, i * cellSize);
-                e.Graphics.DrawLine(Pens.Black, i * cellSize, 0, i * cellSize, cellSize * gameFieldSize);
+                e.Graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * GameFieldSize, i * CellSize);
+                e.Graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * GameFieldSize);
             }
         }
 
-        bool IsCellInGameField(int i, int j)
+        Brush GetCellTextBrush(int i, int j)
         {
-            return (i < gameFieldSize && j < gameFieldSize && i >= 0 && j >= 0);
+            switch (fieldNumbersAndBombs[i, j])
+            {
+                case 1: return Brushes.Blue;
+                case 2: return Brushes.Green;
+                case 3: return Brushes.Red;
+                case 5: return Brushes.DarkBlue;
+                default: return Brushes.DarkRed;
+            }
         }
 
-        int NumberBombsAroundCell(int i, int j)
+        private bool IsCellInGameField(int i, int j)
         {
-            int minesAround = 0;
+            return (i < GameFieldSize && j < GameFieldSize && i >= 0 && j >= 0);
+        }
+
+        private int NumberBombsAroundCell(int i, int j)
+        {
+            int bombsAround = 0;
             if (IsCellInGameField(i, j) && fieldNumbersAndBombs[i, j] != -1)
             {
                 foreach (var direction in eightDirections)
                     if (IsCellInGameField(i + direction.X, j + direction.Y) && fieldNumbersAndBombs[i + direction.X, j + direction.Y] == -1)
-                        minesAround++;
+                        bombsAround++;
             }
-            return minesAround;
+            return bombsAround;
         }
 
-        void Restart()
+        private void Restart()
         {
             elapsedTime = TimeSpan.Zero;
             label1.Text = elapsedTime.ToString();
-            fieldNumbersAndBombs = new int[gameFieldSize, gameFieldSize];
-            cellStates = new int[gameFieldSize, gameFieldSize];
+            fieldNumbersAndBombs = new int[GameFieldSize, GameFieldSize];
+            cellStates = new int[GameFieldSize, GameFieldSize];
             int alreadyCreatedBombs = 0;
             flagCount = 0;
 
-            while (alreadyCreatedBombs != bombCount)
+            while (alreadyCreatedBombs != BombCount)
             {
                 int x = random.Next(0, 8);
                 int y = random.Next(0, 8);
@@ -109,9 +106,9 @@ namespace Minesweeper
                 }
             }
 
-            for (int i = 0; i < gameFieldSize; i++)
+            for (int i = 0; i < GameFieldSize; i++)
             {
-                for (int j = 0; j < gameFieldSize; j++)
+                for (int j = 0; j < GameFieldSize; j++)
                 {
                     if (fieldNumbersAndBombs[i, j] == 0)
                         fieldNumbersAndBombs[i, j] = NumberBombsAroundCell(i, j);
@@ -120,7 +117,7 @@ namespace Minesweeper
                 }
             }
 
-            label2.Text = "Мин:" + bombCount;
+            label2.Text = "Мин:" + BombCount;
             pictureBox1.Refresh();
             timer1.Stop();
         }
@@ -133,17 +130,19 @@ namespace Minesweeper
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
-            int x = e.X / cellSize;
-            int y = e.Y / cellSize;
+            int x = e.X / CellSize;
+            int y = e.Y / CellSize;
+            if (!IsCellInGameField(x, y))
+                return;
 
             if (e.Button == MouseButtons.Left)
             {
                 timer1.Start();
 
                 if (cellStates[x, y] == 2)
-                    cellStates[x, y] = 2;
+                    return;
 
-                if (cellStates[x, y] == 1)
+                if (cellStates[x, y] == 3)
                     cellStates[x, y] = 0;
 
                 if (cellStates[x, y] == 0 && fieldNumbersAndBombs[x, y] == 0)
@@ -155,15 +154,15 @@ namespace Minesweeper
                     Defeat();
 
                 int cellsClosedCount = 0;
-                for (int i = 0; i < gameFieldSize; i++)
+                for (int i = 0; i < GameFieldSize; i++)
                 {
-                    for (int j = 0; j < gameFieldSize; j++)
+                    for (int j = 0; j < GameFieldSize; j++)
                     {
                         if (cellStates[i, j] == 1 || cellStates[i, j] == 2)
                             cellsClosedCount++;
                     }
                 }
-                if (cellsClosedCount == bombCount)
+                if (cellsClosedCount == BombCount)
                     Win();
             }
 
@@ -171,41 +170,35 @@ namespace Minesweeper
             {
                 timer1.Start();
 
-                if (cellStates[e.X / cellSize, e.Y / cellSize] == 1)
-                {
-                    cellStates[e.X / cellSize, e.Y / cellSize] = 2;
-                    flagCount++;
 
-                    
+                if (cellStates[e.X / CellSize, e.Y / CellSize] == 3)
+                {
+                    cellStates[e.X / CellSize, e.Y / CellSize] = 2;
+                    flagCount++;
                 }
 
-                else if (cellStates[e.X / cellSize, e.Y / cellSize] == 2)
+                else if (cellStates[e.X / CellSize, e.Y / CellSize] == 2)
                 {
-                    cellStates[e.X / cellSize, e.Y / cellSize] = 1;
+                    cellStates[e.X / CellSize, e.Y / CellSize] = 1;
                     flagCount--;
                 }
 
                 else
-                {
-                    cellStates[e.X / cellSize, e.Y / cellSize] = 0;
+                    return;
 
-                    
-                }
-
-                if (flagCount >= bombCount)
+                if (flagCount >= BombCount)
                     label2.Text = "Мин:" + 0;
                 else
-                label2.Text = "Мин:" + (bombCount - flagCount);
-
-                pictureBox1.Refresh();
+                    label2.Text = "Мин:" + (BombCount - flagCount);
             }
+            pictureBox1.Refresh();
         }
 
-        void Defeat()
+        private void Defeat()
         {
-            for (int i = 0; i < gameFieldSize; i++)
+            for (int i = 0; i < GameFieldSize; i++)
             {
-                for (int j = 0; j < gameFieldSize; j++)
+                for (int j = 0; j < GameFieldSize; j++)
                 {
                     if (fieldNumbersAndBombs[i, j] == -1)
                         cellStates[i, j] = 0;
@@ -218,26 +211,37 @@ namespace Minesweeper
             Restart();
         }
 
-        void Win()
+        private void Win()
         {
             timer1.Stop();
             MessageBox.Show("Krasavcheg!!!");
             Restart();
         }
 
-        void DiscoverEmptyCellsAround(int x, int y)
+        private void DiscoverEmptyCellsAround(int x, int y)
         {
             foreach (var direction in eightDirections)
             {
-                if (IsCellInGameField(x + direction.X, y + direction.Y)
-                    && fieldNumbersAndBombs[x + direction.X, y + direction.Y] != -1
-                    && cellStates[x + direction.X, y + direction.Y] == 1)
+                int adjacentCellX = x + direction.X;
+                int adjacentCellY = y + direction.Y;
+
+                if (IsCellInGameField(adjacentCellX, adjacentCellY)
+                    && fieldNumbersAndBombs[adjacentCellX, adjacentCellY] != -1
+                    && cellStates[adjacentCellX, adjacentCellY] == 1)
                 {
-                    cellStates[x + direction.X, y + direction.Y] = 0;
-                    if (fieldNumbersAndBombs[x + direction.X, y + direction.Y] == 0)
-                        DiscoverEmptyCellsAround(x + direction.X, y + direction.Y);
+                    cellStates[adjacentCellX, adjacentCellY] = 0;
+                    if (fieldNumbersAndBombs[adjacentCellX, adjacentCellY] == 0)
+                        DiscoverEmptyCellsAround(adjacentCellX, adjacentCellY);
                 }
             }
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            
+            
+           
+            
         }
     }
 }
