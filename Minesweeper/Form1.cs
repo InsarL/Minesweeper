@@ -16,6 +16,7 @@ namespace Minesweeper
         int[,] fieldNumbersAndBombs;
         int[,] cellStates;
         Random random;
+        Point illumination = new Point();
         (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
 
         public Form1()
@@ -37,15 +38,13 @@ namespace Minesweeper
                 for (int j = 0; j < GameFieldSize; j++)
                 {
                     if (fieldNumbersAndBombs[i, j] > 0)
-                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), GetCellTextBrush(i,j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
+                        e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), new Font(SystemFonts.DefaultFont, FontStyle.Bold), GetCellTextBrush(i, j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
                     if (fieldNumbersAndBombs[i, j] == -1)
                         e.Graphics.DrawImage(Properties.Resources.folder_locked_big, i * CellSize, j * CellSize);
                     if (cellStates[i, j] == 1)
                         e.Graphics.FillRectangle(Brushes.DarkGray, i * CellSize, j * CellSize, CellSize, CellSize);
                     if (cellStates[i, j] == 2)
                         e.Graphics.DrawImage(Properties.Resources.folder_lock, i * CellSize, j * CellSize);
-                    if (cellStates[i, j] == 3)
-                        e.Graphics.FillRectangle(Brushes.Blue, i * CellSize, j * CellSize, CellSize, CellSize);
                 }
             }
 
@@ -53,6 +52,16 @@ namespace Minesweeper
             {
                 e.Graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * GameFieldSize, i * CellSize);
                 e.Graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * GameFieldSize);
+            }
+
+           if( IsCellInGameField(illumination.X, illumination.Y) && cellStates[illumination.X, illumination.Y] == 1)
+                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * CellSize, illumination.Y * CellSize, CellSize, CellSize);
+           else
+            {
+                illumination.X = -1;
+                illumination.Y = -1;
+                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * CellSize, illumination.Y * CellSize, CellSize, CellSize);
+                
             }
         }
 
@@ -142,7 +151,7 @@ namespace Minesweeper
                 if (cellStates[x, y] == 2)
                     return;
 
-                if (cellStates[x, y] == 3)
+                if (cellStates[x, y] == 1)
                     cellStates[x, y] = 0;
 
                 if (cellStates[x, y] == 0 && fieldNumbersAndBombs[x, y] == 0)
@@ -171,7 +180,7 @@ namespace Minesweeper
                 timer1.Start();
 
 
-                if (cellStates[e.X / CellSize, e.Y / CellSize] == 3)
+                if (cellStates[e.X / CellSize, e.Y / CellSize] == 1)
                 {
                     cellStates[e.X / CellSize, e.Y / CellSize] = 2;
                     flagCount++;
@@ -214,6 +223,7 @@ namespace Minesweeper
         private void Win()
         {
             timer1.Stop();
+            pictureBox1.Refresh();
             MessageBox.Show("Krasavcheg!!!");
             Restart();
         }
@@ -238,10 +248,8 @@ namespace Minesweeper
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            
-            
-           
-            
+            illumination = new Point(e.X / CellSize, e.Y / CellSize);
+            pictureBox1.Refresh();
         }
     }
 }
