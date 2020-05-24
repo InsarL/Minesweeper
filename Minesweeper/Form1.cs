@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Minesweeper
 {
@@ -16,7 +14,9 @@ namespace Minesweeper
         int[,] fieldNumbersAndBombs;
         int[,] cellStates;
         Random random;
-        Point illumination = new Point();
+        Point illumination;
+
+
         (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
 
         public Form1()
@@ -24,6 +24,7 @@ namespace Minesweeper
             InitializeComponent();
 
             random = new Random();
+            illumination = new Point(-1, -1);
             Restart();
         }
         private void button1_Click(object sender, EventArgs e)
@@ -54,15 +55,8 @@ namespace Minesweeper
                 e.Graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * GameFieldSize);
             }
 
-           if( IsCellInGameField(illumination.X, illumination.Y) && cellStates[illumination.X, illumination.Y] == 1)
+            if (IsCellInGameField(illumination.X, illumination.Y) && cellStates[illumination.X, illumination.Y] == 1)
                 e.Graphics.FillRectangle(Brushes.Gray, illumination.X * CellSize, illumination.Y * CellSize, CellSize, CellSize);
-           else
-            {
-                illumination.X = -1;
-                illumination.Y = -1;
-                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * CellSize, illumination.Y * CellSize, CellSize, CellSize);
-                
-            }
         }
 
         Brush GetCellTextBrush(int i, int j)
@@ -162,17 +156,7 @@ namespace Minesweeper
                 if (cellStates[x, y] == 0 && fieldNumbersAndBombs[x, y] == -1)
                     Defeat();
 
-                int cellsClosedCount = 0;
-                for (int i = 0; i < GameFieldSize; i++)
-                {
-                    for (int j = 0; j < GameFieldSize; j++)
-                    {
-                        if (cellStates[i, j] == 1 || cellStates[i, j] == 2)
-                            cellsClosedCount++;
-                    }
-                }
-                if (cellsClosedCount == BombCount)
-                    Win();
+               
             }
 
             else if (e.Button == MouseButtons.Right)
@@ -200,7 +184,51 @@ namespace Minesweeper
                 else
                     label2.Text = "Мин:" + (BombCount - flagCount);
             }
+
+            if (e.Button == MouseButtons.Middle)
+            {
+
+                if (cellStates[x, y] == 0 && fieldNumbersAndBombs[x, y] != 0)
+                {
+                    int t = 0;
+                    foreach (var direction in eightDirections)
+                    {
+                        if (IsCellInGameField(x + direction.X, y + direction.Y) && cellStates[x + direction.X, y + direction.Y] == 2)
+                            t++;
+                    }
+
+                    if (fieldNumbersAndBombs[x, y] == t)
+                    {
+                        foreach (var direction in eightDirections)
+                        {
+                            if (IsCellInGameField(x + direction.X, y + direction.Y) && cellStates[x + direction.X, y + direction.Y] == 1)
+                                cellStates[x + direction.X, y + direction.Y] = 0;
+                            if (IsCellInGameField(x + direction.X, y + direction.Y) && cellStates[x + direction.X, y + direction.Y] == 0 && fieldNumbersAndBombs[x + direction.X, y + direction.Y] == -1)
+                            {
+                                Defeat();
+                                break;
+                            }
+                            if (IsCellInGameField(x + direction.X, y + direction.Y) && cellStates[x + direction.X, y + direction.Y] == 0 && fieldNumbersAndBombs[x + direction.X, y + direction.Y] == 0)
+                                DiscoverEmptyCellsAround(x + direction.X, y + direction.Y);
+                        }
+                    }
+
+                }
+
+            }
+            int cellsClosedCount = 0;
+            for (int i = 0; i < GameFieldSize; i++)
+            {
+                for (int j = 0; j < GameFieldSize; j++)
+                {
+                    if (cellStates[i, j] == 1 || cellStates[i, j] == 2)
+                        cellsClosedCount++;
+                }
+            }
+            if (cellsClosedCount == BombCount)
+                Win();
             pictureBox1.Refresh();
+
         }
 
         private void Defeat()
@@ -213,7 +241,6 @@ namespace Minesweeper
                         cellStates[i, j] = 0;
                 }
             }
-
             timer1.Stop();
             pictureBox1.Refresh();
             MessageBox.Show("Game Over");
@@ -222,6 +249,14 @@ namespace Minesweeper
 
         private void Win()
         {
+            for (int i = 0; i < GameFieldSize; i++)
+            {
+                for (int j = 0; j < GameFieldSize; j++)
+                {
+                    if (fieldNumbersAndBombs[i, j] == -1)
+                        cellStates[i, j] = 0;
+                }
+            }
             timer1.Stop();
             pictureBox1.Refresh();
             MessageBox.Show("Krasavcheg!!!");
@@ -246,10 +281,28 @@ namespace Minesweeper
             }
         }
 
+        private void pictureBox1_MouseLeave(object sender, EventArgs e)
+        {
+
+            illumination = new Point(-1, -1);
+            pictureBox1.Refresh();
+        }
+
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            illumination = new Point(e.X / CellSize, e.Y / CellSize);
+            int x = e.X / CellSize;
+            int y = e.Y / CellSize;
+            illumination = new Point(x, y);
             pictureBox1.Refresh();
+            int x1 = e.X / CellSize;
+            int y1 = e.Y / CellSize;
+            if (x != x1 && y != y1)
+            {
+                illumination = new Point(x1, y1);
+                pictureBox1.Refresh();
+            }
+            else
+                return;
         }
     }
 }
