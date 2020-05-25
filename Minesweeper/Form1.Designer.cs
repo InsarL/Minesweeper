@@ -29,75 +29,75 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.gameFieldPictureBox = new System.Windows.Forms.PictureBox();
+            this.restartButton = new System.Windows.Forms.Button();
+            this.timer = new System.Windows.Forms.Timer(this.components);
+            this.elapsedTimeLabel = new System.Windows.Forms.Label();
+            this.bombCountLabel = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.gameFieldPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
-            // pictureBox1
+            // gameFieldPictureBox
             // 
-            this.pictureBox1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.pictureBox1.Location = new System.Drawing.Point(4, 32);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(231, 236);
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
-            this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
-            this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDown);
-            this.pictureBox1.MouseLeave += new System.EventHandler(this.pictureBox1_MouseLeave);
-            this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
-            this.pictureBox1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseUp);
+            this.gameFieldPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.gameFieldPictureBox.Location = new System.Drawing.Point(4, 32);
+            this.gameFieldPictureBox.Name = "gameFieldPictureBox";
+            this.gameFieldPictureBox.Size = new System.Drawing.Size(231, 236);
+            this.gameFieldPictureBox.TabIndex = 0;
+            this.gameFieldPictureBox.TabStop = false;
+            this.gameFieldPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.gameFieldPictureBox_Paint);
+            this.gameFieldPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDown);
+            this.gameFieldPictureBox.MouseLeave += new System.EventHandler(this.pictureBox1_MouseLeave);
+            this.gameFieldPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
+            this.gameFieldPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseUp);
             // 
-            // button1
+            // restartButton
             // 
-            this.button1.ForeColor = System.Drawing.Color.DarkRed;
-            this.button1.Location = new System.Drawing.Point(4, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "Restart";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.restartButton.ForeColor = System.Drawing.Color.DarkRed;
+            this.restartButton.Location = new System.Drawing.Point(4, 3);
+            this.restartButton.Name = "restartButton";
+            this.restartButton.Size = new System.Drawing.Size(75, 23);
+            this.restartButton.TabIndex = 1;
+            this.restartButton.Text = "Restart";
+            this.restartButton.UseVisualStyleBackColor = true;
+            this.restartButton.Click += new System.EventHandler(this.RestartButton_Click);
             // 
-            // timer1
+            // timer
             // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 1000;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.timer.Enabled = true;
+            this.timer.Interval = 1000;
+            this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
-            // label1
+            // elapsedTimeLabel
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(96, 8);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(35, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "label1";
+            this.elapsedTimeLabel.AutoSize = true;
+            this.elapsedTimeLabel.Location = new System.Drawing.Point(96, 8);
+            this.elapsedTimeLabel.Name = "elapsedTimeLabel";
+            this.elapsedTimeLabel.Size = new System.Drawing.Size(35, 13);
+            this.elapsedTimeLabel.TabIndex = 2;
+            this.elapsedTimeLabel.Text = "label1";
             // 
-            // label2
+            // bombCountLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(163, 8);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(35, 13);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "label2";
+            this.bombCountLabel.AutoSize = true;
+            this.bombCountLabel.Location = new System.Drawing.Point(163, 8);
+            this.bombCountLabel.Name = "bombCountLabel";
+            this.bombCountLabel.Size = new System.Drawing.Size(35, 13);
+            this.bombCountLabel.TabIndex = 3;
+            this.bombCountLabel.Text = "label2";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(236, 274);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.bombCountLabel);
+            this.Controls.Add(this.elapsedTimeLabel);
+            this.Controls.Add(this.restartButton);
+            this.Controls.Add(this.gameFieldPictureBox);
             this.Name = "Form1";
             this.Text = "MinesWeeper";
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gameFieldPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -105,11 +105,11 @@
 
         #endregion
 
-        private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.PictureBox gameFieldPictureBox;
+        private System.Windows.Forms.Button restartButton;
+        private System.Windows.Forms.Label elapsedTimeLabel;
+        private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.Label bombCountLabel;
     }
 }
 

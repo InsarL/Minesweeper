@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -6,19 +7,20 @@ namespace Minesweeper
 {
     public partial class Form1 : Form
     {
-        const int CellSize = 25;
-        const int GameFieldSize = 9;
-        const int BombCount = 15;
-        int flagCount;
-        TimeSpan elapsedTime = TimeSpan.Zero;
-        int[,] fieldNumbersAndBombs;
-        CellState[,] cellStates;
-        Random random;
-        Point illumination;
-        Font font;
-        (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
-        int cliks;
-        MouseButtons smart;
+        private const int CellSize = 25;
+        private const int GameFieldSize = 9;
+        private const int BombCount = 10;
+        private int flagCount;
+        private TimeSpan elapsedTime = TimeSpan.Zero;
+        private int[,] fieldNumbersAndBombs;
+        private CellState[,] cellStates;
+        private Random random;
+        private Point illumination;
+        private Font font;
+        private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
+        private int cliks;
+        private MouseButtons smart;
+        private List<Point> allCellField;
 
         public Form1()
         {
@@ -28,13 +30,17 @@ namespace Minesweeper
             illumination = new Point(-1, -1);
             Restart();
         }
-        private void button1_Click(object sender, EventArgs e)
+
+        private void RestartButton_Click(object sender, EventArgs e)
         {
             Restart();
         }
 
-        private void pictureBox1_Paint(object sender, PaintEventArgs e)
+        private void gameFieldPictureBox_Paint(object sender, PaintEventArgs e)
         {
+            Bitmap bomb = Properties.Resources.folder_locked_big;
+            Bitmap flag = Properties.Resources.folder_lock;
+
             for (int i = 0; i < GameFieldSize; i++)
             {
                 for (int j = 0; j < GameFieldSize; j++)
@@ -42,25 +48,23 @@ namespace Minesweeper
                     if (fieldNumbersAndBombs[i, j] > 0)
                         e.Graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), font, GetCellTextBrush(i, j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
                     if (fieldNumbersAndBombs[i, j] == -1)
-                        e.Graphics.DrawImage(Properties.Resources.folder_locked_big, i * CellSize, j * CellSize);
+                        e.Graphics.DrawImage(bomb, i * CellSize, j * CellSize);
                     if (cellStates[i, j] == CellState.Closed)
                         e.Graphics.FillRectangle(Brushes.DarkGray, i * CellSize, j * CellSize, CellSize, CellSize);
                     if (cellStates[i, j] == CellState.Flagged)
-                        e.Graphics.DrawImage(Properties.Resources.folder_lock, i * CellSize, j * CellSize);
+                        e.Graphics.DrawImage(flag, i * CellSize, j * CellSize);
                 }
             }
-
             for (int i = 0; i <= GameFieldSize; i++)
             {
                 e.Graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * GameFieldSize, i * CellSize);
                 e.Graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * GameFieldSize);
             }
-
             if (IsCellInGameField(illumination.X, illumination.Y) && cellStates[illumination.X, illumination.Y] == CellState.Closed)
                 e.Graphics.FillRectangle(Brushes.Gray, illumination.X * CellSize, illumination.Y * CellSize, CellSize, CellSize);
         }
 
-        Brush GetCellTextBrush(int i, int j)
+        private Brush GetCellTextBrush(int i, int j)
         {
             switch (fieldNumbersAndBombs[i, j])
             {
@@ -93,30 +97,28 @@ namespace Minesweeper
         {
             cliks = 0;
             elapsedTime = TimeSpan.Zero;
-            label1.Text = elapsedTime.ToString();
-
+            elapsedTimeLabel.Text = elapsedTime.ToString();
             fieldNumbersAndBombs = new int[GameFieldSize, GameFieldSize];
             cellStates = new CellState[GameFieldSize, GameFieldSize];
-
             flagCount = 0;
-
+            allCellField = new List<Point>();
             for (int i = 0; i < GameFieldSize; i++)
             {
                 for (int j = 0; j < GameFieldSize; j++)
                 {
                     cellStates[i, j] = CellState.Closed;
+                    allCellField.Add(new Point(i, j));
                 }
             }
-
-            label2.Text = "Мин:" + BombCount;
-            pictureBox1.Refresh();
-            timer1.Stop();
+            bombCountLabel.Text = "Мин:" + BombCount;
+            gameFieldPictureBox.Refresh();
+            timer.Stop();
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void timer_Tick(object sender, EventArgs e)
         {
             elapsedTime = elapsedTime.Add(TimeSpan.FromSeconds(1));
-            label1.Text = elapsedTime.ToString();
+            elapsedTimeLabel.Text = elapsedTime.ToString();
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
@@ -125,85 +127,14 @@ namespace Minesweeper
             int y = e.Y / CellSize;
             if (!IsCellInGameField(x, y))
                 return;
-
             if (e.Button == MouseButtons.Left)
-            {
-                timer1.Start();
-                cliks++;
-                if (cliks == 1)
-                {
-                    int alreadyCreatedBombs = 0;
-                    while (alreadyCreatedBombs != BombCount)
-                    {
-                        int a = random.Next(0, 8);
-                        int b = random.Next(0, 8);
-
-                        if (fieldNumbersAndBombs[a, b] == 0 && a != x && b != y)
-                        {
-                            fieldNumbersAndBombs[a, b] = -1;
-                            alreadyCreatedBombs++;
-                        }
-                    }
-
-                    for (int i = 0; i < GameFieldSize; i++)
-                    {
-                        for (int j = 0; j < GameFieldSize; j++)
-                        {
-                            if (fieldNumbersAndBombs[i, j] == 0)
-                                fieldNumbersAndBombs[i, j] = NumberBombsAroundCell(i, j);
-                        }
-                    }
-
-                }
-
-                if (cellStates[x, y] == CellState.Flagged)
-                    return;
-
-                if (cellStates[x, y] == CellState.Closed)
-                    cellStates[x, y] = CellState.Opened;
-
-                if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == 0)
-                    DiscoverEmptyCellsAround(x, y);
-
-                pictureBox1.Refresh();
-
-                if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == -1)
-                    Defeat();
-
-
-            }
-
-            else if (e.Button == MouseButtons.Right)
-            {
-                timer1.Start();
-
-
-                if (cellStates[e.X / CellSize, e.Y / CellSize] == CellState.Closed)
-                {
-                    cellStates[e.X / CellSize, e.Y / CellSize] = CellState.Flagged;
-                    flagCount++;
-                }
-
-                else if (cellStates[e.X / CellSize, e.Y / CellSize] == CellState.Flagged)
-                {
-                    cellStates[e.X / CellSize, e.Y / CellSize] = CellState.Closed;
-                    flagCount--;
-                }
-
-                else
-                    return;
-
-                if (flagCount >= BombCount)
-                    label2.Text = "Мин:" + 0;
-                else
-                    label2.Text = "Мин:" + (BombCount - flagCount);
-            }
-
+                OpenCell(x, y);
+            if (e.Button == MouseButtons.Right)
+                MarkCell(x, y);
             if (e.Button == MouseButtons.Middle
-                || smart == MouseButtons.Right && e.Button == MouseButtons.Left 
+                || smart == MouseButtons.Right && e.Button == MouseButtons.Left
                 || smart == MouseButtons.Left && e.Button == MouseButtons.Right)
                 SmartOpenCell(x, y);
-            
 
             int cellsClosedCount = 0;
             for (int i = 0; i < GameFieldSize; i++)
@@ -216,8 +147,7 @@ namespace Minesweeper
             }
             if (cellsClosedCount == BombCount)
                 Win();
-            pictureBox1.Refresh();
-
+            gameFieldPictureBox.Refresh();
         }
 
         private void Defeat()
@@ -230,8 +160,8 @@ namespace Minesweeper
                         cellStates[i, j] = CellState.Opened;
                 }
             }
-            timer1.Stop();
-            pictureBox1.Refresh();
+            timer.Stop();
+            gameFieldPictureBox.Refresh();
             MessageBox.Show("Game Over");
             Restart();
         }
@@ -246,8 +176,8 @@ namespace Minesweeper
                         cellStates[i, j] = CellState.Opened;
                 }
             }
-            timer1.Stop();
-            pictureBox1.Refresh();
+            timer.Stop();
+            gameFieldPictureBox.Refresh();
             MessageBox.Show("Krasavcheg!!!");
             Restart();
         }
@@ -258,7 +188,6 @@ namespace Minesweeper
             {
                 int adjacentCellX = x + direction.X;
                 int adjacentCellY = y + direction.Y;
-
                 if (IsCellInGameField(adjacentCellX, adjacentCellY)
                     && fieldNumbersAndBombs[adjacentCellX, adjacentCellY] != -1
                     && cellStates[adjacentCellX, adjacentCellY] == CellState.Closed)
@@ -273,7 +202,7 @@ namespace Minesweeper
         private void pictureBox1_MouseLeave(object sender, EventArgs e)
         {
             illumination = new Point(-1, -1);
-            pictureBox1.Refresh();
+            gameFieldPictureBox.Refresh();
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
@@ -283,7 +212,7 @@ namespace Minesweeper
             if (illumination.X != x || illumination.Y != y)
             {
                 illumination = new Point(x, y);
-                pictureBox1.Refresh();
+                gameFieldPictureBox.Refresh();
             }
         }
 
@@ -297,14 +226,13 @@ namespace Minesweeper
         {
             if (cellStates[x, y] == CellState.Opened)
             {
-                int t = 0;
+                int counter = 0;
                 foreach (var direction in eightDirections)
                 {
                     if (IsCellInGameField(x + direction.X, y + direction.Y) && cellStates[x + direction.X, y + direction.Y] == CellState.Flagged)
-                        t++;
+                        counter++;
                 }
-
-                if (fieldNumbersAndBombs[x, y] == t)
+                if (fieldNumbersAndBombs[x, y] == counter)
                 {
                     foreach (var direction in eightDirections)
                     {
@@ -320,6 +248,65 @@ namespace Minesweeper
                     }
                 }
             }
+        }
+
+        private void OpenCell(int x, int y)
+        {
+            timer.Start();
+            cliks++;
+            if (cliks == 1)
+            {
+                int alreadyCreatedBombs = 0;
+                while (alreadyCreatedBombs != BombCount)
+                {
+                    int a = random.Next(0, allCellField.Count);
+                    if (allCellField[a].X != x || allCellField[a].Y != y)
+                    {
+                        fieldNumbersAndBombs[allCellField[a].X, allCellField[a].Y] = -1;
+                        allCellField.RemoveAt(a);
+                        alreadyCreatedBombs++;
+                    }
+
+                }
+                for (int i = 0; i < GameFieldSize; i++)
+                {
+                    for (int j = 0; j < GameFieldSize; j++)
+                    {
+                        if (fieldNumbersAndBombs[i, j] == 0)
+                            fieldNumbersAndBombs[i, j] = NumberBombsAroundCell(i, j);
+                    }
+                }
+            }
+            if (cellStates[x, y] == CellState.Flagged)
+                return;
+            if (cellStates[x, y] == CellState.Closed)
+                cellStates[x, y] = CellState.Opened;
+            if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == 0)
+                DiscoverEmptyCellsAround(x, y);
+            gameFieldPictureBox.Refresh();
+            if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == -1)
+                Defeat();
+        }
+
+        private void MarkCell(int x, int y)
+        {
+            timer.Start();
+            if (cellStates[x, y] == CellState.Closed)
+            {
+                cellStates[x, y] = CellState.Flagged;
+                flagCount++;
+            }
+            else if (cellStates[x, y] == CellState.Flagged)
+            {
+                cellStates[x, y] = CellState.Closed;
+                flagCount--;
+            }
+            else
+                return;
+            if (flagCount >= BombCount)
+                bombCountLabel.Text = "Мин:" + 0;
+            else
+                bombCountLabel.Text = "Мин:" + (BombCount - flagCount);
         }
     }
 }
