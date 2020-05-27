@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-    enum CellState
+﻿
+ namespace Minesweeper
+{
+    public enum CellState
     {
         Opened,
         Closed,
         Flagged
     }
+}
