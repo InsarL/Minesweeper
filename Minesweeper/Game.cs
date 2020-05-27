@@ -21,7 +21,7 @@ namespace Minesweeper
         private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
         private int cliks;
         private List<Point> allCellField;
-        private int flagCount;
+        public int flagCount;
         private Random random = new Random();
 
         public void Restart()
@@ -158,10 +158,7 @@ namespace Minesweeper
                 flagCount--;
             }
 
-            if (flagCount >= BombCount)
-                bombCountLabel.Text = "Мин:" + 0;
-            else
-                bombCountLabel.Text = "Мин:" + (BombCount - flagCount);
+
         }
     }
 }

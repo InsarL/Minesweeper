@@ -94,11 +94,19 @@ namespace Minesweeper
             if (e.Button == MouseButtons.Left)
                 game.OpenCell(x, y);
             if (e.Button == MouseButtons.Right)
+            {
                 game.MarkCell(x, y);
+                if (game.flagCount >= game.BombCount)
+                    bombCountLabel.Text = "Мин:" + 0;
+                else
+                    bombCountLabel.Text = "Мин:" + (game.BombCount - game.flagCount);
+            }
+
             if (e.Button == MouseButtons.Middle
                 || smart == MouseButtons.Right && e.Button == MouseButtons.Left
                 || smart == MouseButtons.Left && e.Button == MouseButtons.Right)
               game.SmartOpenCell(x, y);
+
             int cellsClosedCount = 0;
             for (int i = 0; i < game.GameFieldSize; i++)
                 for (int j = 0; j < game.GameFieldSize; j++)
