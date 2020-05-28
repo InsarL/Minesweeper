@@ -8,30 +8,21 @@ namespace Minesweeper
     public partial class Form1 : Form
     {
         private const int CellSize = 25;
-       
-        
-        
         private TimeSpan elapsedTime = TimeSpan.Zero;
-        
-        
         private Point illumination;
         private Font font;
-       
-        
         private MouseButtons smart;
-        
         private Game game;
-
         public Form1()
+
         {
             InitializeComponent();
             game = new Game(this);
             font = new Font(SystemFonts.DefaultFont, FontStyle.Bold);
-           
+
             illumination = new Point(-1, -1);
             game.Restart();
         }
-
         private void RestartButton_Click(object sender, EventArgs e)
         {
             game.Restart();
@@ -63,19 +54,12 @@ namespace Minesweeper
                 e.Graphics.FillRectangle(Brushes.Gray, illumination.X * CellSize, illumination.Y * CellSize, CellSize, CellSize);
         }
 
-       
-
-        
-
-       
-
         public void OnRestart()
         {
             elapsedTime = TimeSpan.Zero;
             elapsedTimeLabel.Text = elapsedTime.ToString();
             bombCountLabel.Text = "Мин:" + game.BombCount;
             gameFieldPictureBox.Refresh();
-            timer.Stop();
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -91,8 +75,10 @@ namespace Minesweeper
             int y = e.Y / CellSize;
             if (!game.IsCellInGameField(x, y))
                 return;
+
             if (e.Button == MouseButtons.Left)
                 game.OpenCell(x, y);
+
             if (e.Button == MouseButtons.Right)
             {
                 game.MarkCell(x, y);
@@ -105,43 +91,24 @@ namespace Minesweeper
             if (e.Button == MouseButtons.Middle
                 || smart == MouseButtons.Right && e.Button == MouseButtons.Left
                 || smart == MouseButtons.Left && e.Button == MouseButtons.Right)
-              game.SmartOpenCell(x, y);
-
-            int cellsClosedCount = 0;
-            for (int i = 0; i < game.GameFieldSize; i++)
-                for (int j = 0; j < game.GameFieldSize; j++)
-                    if (game.cellStates[i, j] == CellState.Closed || game.cellStates[i, j] == CellState.Flagged)
-                        cellsClosedCount++;
-            if (cellsClosedCount == game.BombCount)
-                Win();
+                game.SmartOpenCell(x, y);
             gameFieldPictureBox.Refresh();
         }
 
-        public void Defeat()
+        public void OnDefeat()
         {
-            for (int i = 0; i < game.GameFieldSize; i++)
-                for (int j = 0; j < game.GameFieldSize; j++)
-                    if (game.fieldNumbersAndBombs[i, j] == -1)
-                        game.cellStates[i, j] = CellState.Opened;
             timer.Stop();
             gameFieldPictureBox.Refresh();
             MessageBox.Show("Game Over");
-            game.Restart();
+
         }
 
-        private void Win()
+        public void OnWin()
         {
-            for (int i = 0; i < game.GameFieldSize; i++)
-                for (int j = 0; j < game.GameFieldSize; j++)
-                    if (game.fieldNumbersAndBombs[i, j] == -1)
-                        game.cellStates[i, j] = CellState.Opened;
             timer.Stop();
             gameFieldPictureBox.Refresh();
             MessageBox.Show("Krasavcheg!!!");
-            game.Restart();
         }
-
-
 
         private void pictureBox1_MouseLeave(object sender, EventArgs e)
         {
@@ -165,11 +132,5 @@ namespace Minesweeper
             if (e.Button == MouseButtons.Right || e.Button == MouseButtons.Left)
                 smart = e.Button;
         }
-
-
-
-        
-
-        
     }
 }

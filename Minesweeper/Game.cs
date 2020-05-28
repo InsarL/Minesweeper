@@ -27,9 +27,8 @@ namespace Minesweeper
         public void Restart()
         {
             cliks = 0;
-            
             fieldNumbersAndBombs = new int[GameFieldSize, GameFieldSize];
-            cellStates = new CellState[GameFieldSize,GameFieldSize];
+            cellStates = new CellState[GameFieldSize, GameFieldSize];
             flagCount = 0;
             allCellField = new List<Point>();
             for (int i = 0; i < GameFieldSize; i++)
@@ -101,7 +100,7 @@ namespace Minesweeper
                             cellStates[x + direction.X, y + direction.Y] = CellState.Opened;
                         if (IsCellInGameField(x + direction.X, y + direction.Y) && cellStates[x + direction.X, y + direction.Y] == 0 && fieldNumbersAndBombs[x + direction.X, y + direction.Y] == -1)
                         {
-                            gameForm.Defeat();
+                            Defeat();
                             break;
                         }
                         if (IsCellInGameField(x + direction.X, y + direction.Y) && cellStates[x + direction.X, y + direction.Y] == CellState.Opened && fieldNumbersAndBombs[x + direction.X, y + direction.Y] == 0)
@@ -141,8 +140,17 @@ namespace Minesweeper
             if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == 0)
                 DiscoverEmptyCellsAround(x, y);
             if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == -1)
-                gameForm.Defeat();
+                Defeat();
+
+            int cellsClosedCount = 0;
+            for (int i = 0; i < GameFieldSize; i++)
+                for (int j = 0; j < GameFieldSize; j++)
+                    if (cellStates[i, j] == CellState.Closed || cellStates[i, j] == CellState.Flagged)
+                        cellsClosedCount++;
+            if (cellsClosedCount == BombCount)
+                Win();
         }
+
 
         public void MarkCell(int x, int y)
         {
@@ -157,8 +165,27 @@ namespace Minesweeper
                 cellStates[x, y] = CellState.Closed;
                 flagCount--;
             }
+        }
 
+        public void Defeat()
+        {
+            for (int i = 0; i < GameFieldSize; i++)
+                for (int j = 0; j < GameFieldSize; j++)
+                    if (fieldNumbersAndBombs[i, j] == -1)
+                        cellStates[i, j] = CellState.Opened;
+            gameForm.OnDefeat();
+            Restart();
+        }
 
+        public void Win()
+        {
+
+            for (int i = 0; i < GameFieldSize; i++)
+                for (int j = 0; j < GameFieldSize; j++)
+                    if (fieldNumbersAndBombs[i, j] == -1)
+                        cellStates[i, j] = CellState.Opened;
+            gameForm.OnWin();
+            Restart();
         }
     }
 }
