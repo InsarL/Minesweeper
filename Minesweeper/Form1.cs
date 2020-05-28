@@ -7,22 +7,22 @@ namespace Minesweeper
 {
     public partial class Form1 : Form
     {
-        private const int CellSize = 25;
+
         private TimeSpan elapsedTime = TimeSpan.Zero;
         private Point illumination;
-        private Font font;
         private MouseButtons smart;
         private Game game;
+
         public Form1()
 
         {
             InitializeComponent();
             game = new Game(this);
-            font = new Font(SystemFonts.DefaultFont, FontStyle.Bold);
 
             illumination = new Point(-1, -1);
             game.Restart();
         }
+
         private void RestartButton_Click(object sender, EventArgs e)
         {
             game.Restart();
@@ -30,28 +30,10 @@ namespace Minesweeper
 
         private void gameFieldPictureBox_Paint(object sender, PaintEventArgs e)
         {
-            Bitmap bomb = Properties.Resources.folder_locked_big;
-            Bitmap flag = Properties.Resources.folder_lock;
+            game.Draw(e.Graphics);
 
-            for (int i = 0; i < game.GameFieldSize; i++)
-                for (int j = 0; j < game.GameFieldSize; j++)
-                {
-                    if (game.fieldNumbersAndBombs[i, j] > 0)
-                        e.Graphics.DrawString(game.fieldNumbersAndBombs[i, j].ToString(), font, game.GetCellTextBrush(i, j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
-                    if (game.fieldNumbersAndBombs[i, j] == -1)
-                        e.Graphics.DrawImage(bomb, i * CellSize, j * CellSize);
-                    if (game.cellStates[i, j] == CellState.Closed)
-                        e.Graphics.FillRectangle(Brushes.DarkGray, i * CellSize, j * CellSize, CellSize, CellSize);
-                    if (game.cellStates[i, j] == CellState.Flagged)
-                        e.Graphics.DrawImage(flag, i * CellSize, j * CellSize);
-                }
-            for (int i = 0; i <= game.GameFieldSize; i++)
-            {
-                e.Graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * game.GameFieldSize, i * CellSize);
-                e.Graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * game.GameFieldSize);
-            }
             if (game.IsCellInGameField(illumination.X, illumination.Y) && game.cellStates[illumination.X, illumination.Y] == CellState.Closed)
-                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * CellSize, illumination.Y * CellSize, CellSize, CellSize);
+                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * game.CellSize, illumination.Y * game.CellSize, game.CellSize, game.CellSize);
         }
 
         public void OnRestart()
@@ -71,8 +53,8 @@ namespace Minesweeper
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             timer.Start();
-            int x = e.X / CellSize;
-            int y = e.Y / CellSize;
+            int x = e.X / game.CellSize;
+            int y = e.Y / game.CellSize;
             if (!game.IsCellInGameField(x, y))
                 return;
 
@@ -118,8 +100,8 @@ namespace Minesweeper
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            int x = e.X / CellSize;
-            int y = e.Y / CellSize;
+            int x = e.X / game.CellSize;
+            int y = e.Y / game.CellSize;
             if (illumination.X != x || illumination.Y != y)
             {
                 illumination = new Point(x, y);

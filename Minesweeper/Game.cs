@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Linq;
+using System.Drawing.Drawing2D;
 
 namespace Minesweeper
 {
@@ -23,6 +24,33 @@ namespace Minesweeper
         private List<Point> allCellField;
         public int flagCount;
         private Random random = new Random();
+        public int CellSize = 25;
+        private Font font = new Font(SystemFonts.DefaultFont, FontStyle.Bold);
+
+        public void Draw(Graphics graphics)
+        {
+            Bitmap bomb = Properties.Resources.folder_locked_big;
+            Bitmap flag = Properties.Resources.folder_lock;
+
+            for (int i = 0; i < GameFieldSize; i++)
+                for (int j = 0; j < GameFieldSize; j++)
+                {
+                    if (fieldNumbersAndBombs[i, j] > 0)
+                        graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), font, GetCellTextBrush(i, j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
+                    if (fieldNumbersAndBombs[i, j] == -1)
+                        graphics.DrawImage(bomb, i * CellSize, j * CellSize);
+                    if (cellStates[i, j] == CellState.Closed)
+                        graphics.FillRectangle(Brushes.DarkGray, i * CellSize, j * CellSize, CellSize, CellSize);
+                    if (cellStates[i, j] == CellState.Flagged)
+                        graphics.DrawImage(flag, i * CellSize, j * CellSize);
+                }
+
+            for (int i = 0; i <= GameFieldSize; i++)
+            {
+                graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * GameFieldSize, i * CellSize);
+                graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * GameFieldSize);
+            }
+        }
 
         public void Restart()
         {
@@ -109,7 +137,6 @@ namespace Minesweeper
                 }
             }
         }
-
 
         public void OpenCell(int x, int y)
         {
