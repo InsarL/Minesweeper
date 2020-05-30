@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -11,12 +10,15 @@ namespace Minesweeper
         private Point illumination;
         private MouseButtons smart;
         private Game game;
+        
 
         public Form1()
 
         {
             InitializeComponent();
             game = new Game();
+            game.Defeat += OnDefeat;
+            game.Win += OnWin;
             illumination = new Point(-1, -1);
             game.Restart();
         }
@@ -70,14 +72,14 @@ namespace Minesweeper
             gameFieldPictureBox.Refresh();
         }
 
-        public void Defeat()
+        public void OnDefeat()
         {
             timer.Stop();
             gameFieldPictureBox.Refresh();
             MessageBox.Show("Game Over");
         }
 
-        public void Win()
+        public void OnWin()
         {
             timer.Stop();
             gameFieldPictureBox.Refresh();
@@ -106,8 +108,5 @@ namespace Minesweeper
             if (e.Button == MouseButtons.Right || e.Button == MouseButtons.Left)
                 smart = e.Button;
         }
-
-
-
     }
 }

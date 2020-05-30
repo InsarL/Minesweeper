@@ -161,7 +161,14 @@ namespace Minesweeper
             if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == 0)
                 DiscoverEmptyCellsAround(x, y);
             if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == -1)
-                HandleDefeat();
+            {
+                for (int i = 0; i < GameFieldSize; i++)
+                    for (int j = 0; j < GameFieldSize; j++)
+                        if (fieldNumbersAndBombs[i, j] == -1)
+                            cellStates[i, j] = CellState.Opened;
+                Defeat();
+            }
+                        
 
             int cellsClosedCount = 0;
             for (int i = 0; i < GameFieldSize; i++)
@@ -169,7 +176,7 @@ namespace Minesweeper
                     if (cellStates[i, j] == CellState.Closed || cellStates[i, j] == CellState.Flagged)
                         cellsClosedCount++;
             if (cellsClosedCount == BombCount)
-               Win();
+                Win();
         }
 
         public void MarkCell(int x, int y)
@@ -186,15 +193,5 @@ namespace Minesweeper
                 flagCount--;
             }
         }
-
-        public void HandleDefeat()
-        {
-            for (int i = 0; i < GameFieldSize; i++)
-                for (int j = 0; j < GameFieldSize; j++)
-                    if (fieldNumbersAndBombs[i, j] == -1)
-                        cellStates[i, j] = CellState.Opened;
-            Defeat();
-        }
-
     }
 }
