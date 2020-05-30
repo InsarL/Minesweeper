@@ -46,10 +46,10 @@
             this.gameFieldPictureBox.TabIndex = 0;
             this.gameFieldPictureBox.TabStop = false;
             this.gameFieldPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.gameFieldPictureBox_Paint);
-            this.gameFieldPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDown);
-            this.gameFieldPictureBox.MouseLeave += new System.EventHandler(this.pictureBox1_MouseLeave);
-            this.gameFieldPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
-            this.gameFieldPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseUp);
+            this.gameFieldPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.gameFieldPictureBox_MouseDown);
+            this.gameFieldPictureBox.MouseLeave += new System.EventHandler(this.gameFieldPictureBox_MouseLeave);
+            this.gameFieldPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.gameFieldPictureBox_MouseMove);
+            this.gameFieldPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.gameFieldPictureBox_MouseUp);
             // 
             // restartButton
             // 

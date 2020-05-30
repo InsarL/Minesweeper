@@ -7,7 +7,6 @@ namespace Minesweeper
 {
     public partial class Form1 : Form
     {
-
         private TimeSpan elapsedTime = TimeSpan.Zero;
         private Point illumination;
         private MouseButtons smart;
@@ -17,8 +16,7 @@ namespace Minesweeper
 
         {
             InitializeComponent();
-            game = new Game(this);
-
+            game = new Game();
             illumination = new Point(-1, -1);
             game.Restart();
         }
@@ -26,22 +24,17 @@ namespace Minesweeper
         private void RestartButton_Click(object sender, EventArgs e)
         {
             game.Restart();
+            elapsedTime = TimeSpan.Zero;
+            elapsedTimeLabel.Text = elapsedTime.ToString();
+            bombCountLabel.Text = "Мин:" + game.BombCount;
+            gameFieldPictureBox.Refresh();
         }
 
         private void gameFieldPictureBox_Paint(object sender, PaintEventArgs e)
         {
             game.Draw(e.Graphics);
-
             if (game.IsCellInGameField(illumination.X, illumination.Y) && game.cellStates[illumination.X, illumination.Y] == CellState.Closed)
                 e.Graphics.FillRectangle(Brushes.Gray, illumination.X * game.CellSize, illumination.Y * game.CellSize, game.CellSize, game.CellSize);
-        }
-
-        public void OnRestart()
-        {
-            elapsedTime = TimeSpan.Zero;
-            elapsedTimeLabel.Text = elapsedTime.ToString();
-            bombCountLabel.Text = "Мин:" + game.BombCount;
-            gameFieldPictureBox.Refresh();
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -50,7 +43,7 @@ namespace Minesweeper
             elapsedTimeLabel.Text = elapsedTime.ToString();
         }
 
-        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        private void gameFieldPictureBox_MouseUp(object sender, MouseEventArgs e)
         {
             timer.Start();
             int x = e.X / game.CellSize;
@@ -77,28 +70,27 @@ namespace Minesweeper
             gameFieldPictureBox.Refresh();
         }
 
-        public void OnDefeat()
+        public void Defeat()
         {
             timer.Stop();
             gameFieldPictureBox.Refresh();
             MessageBox.Show("Game Over");
-
         }
 
-        public void OnWin()
+        public void Win()
         {
             timer.Stop();
             gameFieldPictureBox.Refresh();
             MessageBox.Show("Krasavcheg!!!");
         }
 
-        private void pictureBox1_MouseLeave(object sender, EventArgs e)
+        private void gameFieldPictureBox_MouseLeave(object sender, EventArgs e)
         {
             illumination = new Point(-1, -1);
             gameFieldPictureBox.Refresh();
         }
 
-        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        private void gameFieldPictureBox_MouseMove(object sender, MouseEventArgs e)
         {
             int x = e.X / game.CellSize;
             int y = e.Y / game.CellSize;
@@ -109,10 +101,13 @@ namespace Minesweeper
             }
         }
 
-        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        private void gameFieldPictureBox_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right || e.Button == MouseButtons.Left)
                 smart = e.Button;
         }
+
+
+
     }
 }
