@@ -11,7 +11,6 @@ namespace Minesweeper
         private MouseButtons smart;
         private Game game;
         
-
         public Form1()
 
         {
@@ -77,6 +76,7 @@ namespace Minesweeper
             timer.Stop();
             gameFieldPictureBox.Refresh();
             MessageBox.Show("Game Over");
+            RestartButton_Click(this, new EventArgs());
         }
 
         public void OnWin()
@@ -84,6 +84,7 @@ namespace Minesweeper
             timer.Stop();
             gameFieldPictureBox.Refresh();
             MessageBox.Show("Krasavcheg!!!");
+            RestartButton_Click(this, new EventArgs());
         }
 
         private void gameFieldPictureBox_MouseLeave(object sender, EventArgs e)
