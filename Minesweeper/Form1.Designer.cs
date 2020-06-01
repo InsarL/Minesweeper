@@ -64,7 +64,6 @@
             // 
             // timer
             // 
-            this.timer.Enabled = true;
             this.timer.Interval = 1000;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
@@ -95,6 +94,8 @@
             this.Controls.Add(this.elapsedTimeLabel);
             this.Controls.Add(this.restartButton);
             this.Controls.Add(this.gameFieldPictureBox);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "MinesWeeper";
             ((System.ComponentModel.ISupportInitialize)(this.gameFieldPictureBox)).EndInit();

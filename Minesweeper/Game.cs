@@ -12,8 +12,7 @@ namespace Minesweeper
         private int[,] fieldNumbersAndBombs;
         public CellState[,] cellStates;
         private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
-        private bool AreMinesGenerated = false;
-        private List<Point> allCellField;
+        private bool AreBombsGenerated = false;
         public int flagCount;
         private Random random = new Random();
         public int CellSize = 25;
@@ -22,7 +21,6 @@ namespace Minesweeper
         Bitmap flag = Properties.Resources.folder_lock;
         public event Action Win;
         public event Action Defeat;
-        
 
         public void Draw(Graphics graphics)
         {
@@ -48,17 +46,14 @@ namespace Minesweeper
 
         public void Restart()
         {
-            AreMinesGenerated = false;
+            AreBombsGenerated = false;
             fieldNumbersAndBombs = new int[GameFieldSize, GameFieldSize];
             cellStates = new CellState[GameFieldSize, GameFieldSize];
             flagCount = 0;
-            allCellField = new List<Point>();
+
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
-                {
                     cellStates[i, j] = CellState.Closed;
-                    allCellField.Add(new Point(i, j));
-                }
         }
 
         public Brush GetCellTextBrush(int i, int j)
@@ -78,45 +73,47 @@ namespace Minesweeper
             return i < GameFieldSize && j < GameFieldSize && i >= 0 && j >= 0;
         }
 
-        private void GenerateRandomMines()
+        private void GenerateRandomBombs()
         {
-            Point[] cellsWithMines = allCellField.OrderBy(t => random.NextDouble())
+            List<Point> allCellField = new List<Point>();
+
+            for (int i = 0; i < GameFieldSize; i++)
+                for (int j = 0; j < GameFieldSize; j++)
+                    allCellField.Add(new Point(i, j));
+
+            Point[] cellsWithBombs = allCellField.OrderBy(t => random.NextDouble())
                  .Take(BombCount)
                  .ToArray();
-            foreach (Point cell in cellsWithMines)
+            foreach (Point cell in cellsWithBombs)
                 fieldNumbersAndBombs[cell.X, cell.Y] = -1;
         }
 
         private List<Point> CellsAroundGivenCell(int x, int y)
         {
             List<Point> directionsInGameField = new List<Point>();
-            foreach (var direction in eightDirections)
-                if (IsCellInGameField(x + direction.X, y + direction.Y))
-                    directionsInGameField.Add(new Point(x + direction.X, y+ direction.Y));
+            foreach (var adjacentCells in eightDirections)
+                if (IsCellInGameField(x + adjacentCells.X, y + adjacentCells.Y))
+                    directionsInGameField.Add(new Point(x + adjacentCells.X, y + adjacentCells.Y));
+
             return directionsInGameField;
         }
 
         private int NumberBombsAroundCell(int i, int j)
         {
-            int bombsAround = 0;
-            if (IsCellInGameField(i, j) && fieldNumbersAndBombs[i, j] != -1)
-                
-                foreach (var direction in CellsAroundGivenCell(i, j))
-                    if (fieldNumbersAndBombs[direction.X, direction.Y] == -1)
-                        bombsAround++;
-            return bombsAround;
+            return CellsAroundGivenCell(i, j)
+                .Count(adjacentCells => fieldNumbersAndBombs[adjacentCells.X, adjacentCells.Y] == -1);
         }
 
         private void DiscoverEmptyCellsAround(int x, int y)
         {
-            foreach (var direction in CellsAroundGivenCell(x, y))
+            foreach (var adjacentCells in CellsAroundGivenCell(x, y))
             {
-                if ( fieldNumbersAndBombs[direction.X, direction.Y] != -1
-                    && cellStates[direction.X, direction.Y] == CellState.Closed)
+                if (fieldNumbersAndBombs[adjacentCells.X, adjacentCells.Y] != -1
+                    && cellStates[adjacentCells.X, adjacentCells.Y] == CellState.Closed)
                 {
-                    cellStates[direction.X, direction.Y] = CellState.Opened;
-                    if (fieldNumbersAndBombs[direction.X, direction.Y] == 0)
-                        DiscoverEmptyCellsAround(direction.X, direction.Y);
+                    cellStates[adjacentCells.X, adjacentCells.Y] = CellState.Opened;
+                    if (fieldNumbersAndBombs[adjacentCells.X, adjacentCells.Y] == 0)
+                        DiscoverEmptyCellsAround(adjacentCells.X, adjacentCells.Y);
                 }
             }
         }
@@ -125,15 +122,18 @@ namespace Minesweeper
         {
             if (cellStates[x, y] == CellState.Opened)
             {
-                int counter = 0;
-                foreach (var direction in CellsAroundGivenCell( x, y))
-                    if (cellStates[direction.X, direction.Y] == CellState.Flagged)
-                        counter++;
-                if (fieldNumbersAndBombs[x, y] == counter)
-                    foreach (var direction in CellsAroundGivenCell(x, y))
+                int adjacentFlaggedCellCount = CellsAroundGivenCell(x, y)
+                    .Count(adjacentCells => cellStates[adjacentCells.X, adjacentCells.Y] == CellState.Flagged);
+
+                if (fieldNumbersAndBombs[x, y] == adjacentFlaggedCellCount)
+                    foreach (var adjacentCells in CellsAroundGivenCell(x, y))
                     {
-                            OpenCell(direction.X,direction.Y);
-                        if (!AreMinesGenerated)
+                        OpenCell(adjacentCells.X, adjacentCells.Y);
+
+                        // В случае раскрытия клеток вокруг, мы можем выиграть или проиграть. 
+                        // Для этого (чтобы цикл не открывал далее клетки на уже новом игровом поле),
+                        // проверяем "А сгенерировано ли у нас поле?"
+                        if (!AreBombsGenerated)
                             return;
                     }
             }
@@ -141,22 +141,25 @@ namespace Minesweeper
 
         public void OpenCell(int x, int y)
         {
-            if (!AreMinesGenerated)
+            if (!AreBombsGenerated)
             {
-                GenerateRandomMines();
+                GenerateRandomBombs();
                 for (int i = 0; i < GameFieldSize; i++)
                     for (int j = 0; j < GameFieldSize; j++)
                         if (fieldNumbersAndBombs[i, j] == 0)
                             fieldNumbersAndBombs[i, j] = NumberBombsAroundCell(i, j);
-                AreMinesGenerated = true;
+                AreBombsGenerated = true;
             }
 
             if (cellStates[x, y] == CellState.Flagged)
                 return;
+
             if (cellStates[x, y] == CellState.Closed)
                 cellStates[x, y] = CellState.Opened;
+
             if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == 0)
                 DiscoverEmptyCellsAround(x, y);
+
             if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == -1)
             {
                 for (int i = 0; i < GameFieldSize; i++)
@@ -165,8 +168,11 @@ namespace Minesweeper
                             cellStates[i, j] = CellState.Opened;
                 Defeat();
             }
+            int cellsClosedCount = cellStates
+                .OfType<CellState>()
+                .Count(cellState => cellState == CellState.Closed ||
+                                    cellState == CellState.Flagged);
 
-            int cellsClosedCount = cellStates.OfType<CellState>().Count(cellState => cellState == CellState.Closed && cellState == CellState.Flagged);
             if (cellsClosedCount == BombCount)
                 Win();
         }

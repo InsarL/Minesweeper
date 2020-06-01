@@ -10,16 +10,15 @@ namespace Minesweeper
         private Point illumination;
         private MouseButtons smart;
         private Game game;
-        
-        public Form1()
 
+        public Form1()
         {
             InitializeComponent();
             game = new Game();
             game.Defeat += OnDefeat;
             game.Win += OnWin;
             illumination = new Point(-1, -1);
-            game.Restart();
+            RestartButton_Click(this, new EventArgs());
         }
 
         private void RestartButton_Click(object sender, EventArgs e)
