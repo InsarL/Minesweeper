@@ -33,6 +33,7 @@ namespace Minesweeper
         private void gameFieldPictureBox_Paint(object sender, PaintEventArgs e)
         {
             game.Draw(e.Graphics);
+                       
             if (game.IsCellInGameField(illumination.X, illumination.Y)
                 && game.Cells[illumination.X, illumination.Y].CellState == CellState.Closed)
 

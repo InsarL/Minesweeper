@@ -10,15 +10,12 @@ namespace Minesweeper
         public Cell[,] Cells;
 
         public int BombCount = 10;
-        private int GameFieldSize = 9;
+        public int GameFieldSize = 9;
         private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
         private bool AreBombsGenerated = false;
         public int flagCount;
         private Random random = new Random();
         public int CellSize = 25;
-        private Font font = new Font(SystemFonts.DefaultFont, FontStyle.Bold);
-        Bitmap bomb = Properties.Resources.folder_locked_big;
-        Bitmap flag = Properties.Resources.folder_lock;
         public event Action Win;
         public event Action Defeat;
 
@@ -27,28 +24,15 @@ namespace Minesweeper
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
                 {
-                    if (Cells[i, j].BombsAround > 0)
-                        graphics.DrawString(Cells[i, j].BombsAround.ToString(), font, Cells[i, j].GetCellTextBrush(graphics,i,j),
-                                            i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
-
-                    if (Cells[i, j].BombsAround == -1)
-                        graphics.DrawImage(bomb, i * CellSize, j * CellSize);
-
-                    if (Cells[i, j].CellState == CellState.Closed)
-                        graphics.FillRectangle(Brushes.DarkGray, i * CellSize, j * CellSize, CellSize, CellSize);
-
-                    if (Cells[i, j].CellState == CellState.Flagged)
-                        graphics.DrawImage(flag, i * CellSize, j * CellSize);
+                    Cells[i, j].Draw(graphics, i, j);
                 }
 
-            for (int i = 0; i <= GameFieldSize; i++)
+                    for (int i = 0; i <= GameFieldSize; i++)
             {
                 graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * GameFieldSize, i * CellSize);
                 graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * GameFieldSize);
             }
         }
-
-
 
         public void Restart()
         {
@@ -85,7 +69,13 @@ namespace Minesweeper
                 Cells[cell.X, cell.Y].BombsAround = -1;
         }
 
-        private List<Point> CellsAroundGivenCell(int x, int y)
+        private int NumberBombsAroundCell(int i, int j)
+        {
+            return CellsAroundGivenCell(i, j)
+                .Count(adjacentCells => Cells[adjacentCells.X, adjacentCells.Y].BombsAround == -1);
+        }
+
+        public List<Point> CellsAroundGivenCell(int x, int y)
         {
             List<Point> directionsInGameField = new List<Point>();
             foreach (var adjacentCells in eightDirections)
@@ -93,12 +83,6 @@ namespace Minesweeper
                     directionsInGameField.Add(new Point(x + adjacentCells.X, y + adjacentCells.Y));
 
             return directionsInGameField;
-        }
-
-        private int NumberBombsAroundCell(int i, int j)
-        {
-            return CellsAroundGivenCell(i, j)
-                .Count(adjacentCells => Cells[adjacentCells.X, adjacentCells.Y].BombsAround == -1);
         }
 
         private void DiscoverEmptyCellsAround(int x, int y)
