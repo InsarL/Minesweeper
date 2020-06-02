@@ -10,24 +10,26 @@ namespace Minesweeper
         public Cell[,] Cells;
 
         public int BombCount = 10;
-        public int GameFieldSize = 9;
+        public const int GameFieldSize = 9;
         private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
         private bool AreBombsGenerated = false;
         public int flagCount;
         private Random random = new Random();
-        public int CellSize = 25;
+        public const int CellSize = 25;
         public event Action Win;
         public event Action Defeat;
+
 
         public void Draw(Graphics graphics)
         {
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
                 {
-                    Cells[i, j].Draw(graphics, i, j);
+                    Cells[i, j].Draw(graphics,i, j);
                 }
 
-                    for (int i = 0; i <= GameFieldSize; i++)
+            
+            for (int i = 0; i <= GameFieldSize; i++)
             {
                 graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * GameFieldSize, i * CellSize);
                 graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * GameFieldSize);

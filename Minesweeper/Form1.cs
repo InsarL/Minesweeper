@@ -37,8 +37,8 @@ namespace Minesweeper
             if (game.IsCellInGameField(illumination.X, illumination.Y)
                 && game.Cells[illumination.X, illumination.Y].CellState == CellState.Closed)
 
-                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * game.CellSize,
-                    illumination.Y * game.CellSize, game.CellSize, game.CellSize);
+                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * Game.CellSize,
+                    illumination.Y * Game.CellSize, Game.CellSize, Game.CellSize);
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -51,8 +51,8 @@ namespace Minesweeper
         private void gameFieldPictureBox_MouseUp(object sender, MouseEventArgs e)
         {
             timer.Start();
-            int x = e.X / game.CellSize;
-            int y = e.Y / game.CellSize;
+            int x = e.X / Game.CellSize;
+            int y = e.Y / Game.CellSize;
             if (!game.IsCellInGameField(x, y))
                 return;
 
@@ -99,8 +99,8 @@ namespace Minesweeper
 
         private void gameFieldPictureBox_MouseMove(object sender, MouseEventArgs e)
         {
-            int x = e.X / game.CellSize;
-            int y = e.Y / game.CellSize;
+            int x = e.X / Game.CellSize;
+            int y = e.Y / Game.CellSize;
             if (illumination.X != x || illumination.Y != y)
             {
                 illumination = new Point(x, y);

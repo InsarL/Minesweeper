@@ -9,10 +9,12 @@ namespace Minesweeper
     {
         public CellState CellState;
         public int BombsAround;
+
+
         private Font font = new Font(SystemFonts.DefaultFont, FontStyle.Bold);
-        Bitmap bomb = Properties.Resources.folder_locked_big;
-        Bitmap flag = Properties.Resources.folder_lock;
-        private Game game = new Game();
+        private  Bitmap bomb = Properties.Resources.folder_locked_big;
+        private Bitmap flag = Properties.Resources.folder_lock;
+
 
         public Brush GetCellTextBrush()
         {
@@ -29,19 +31,20 @@ namespace Minesweeper
 
         public void Draw(Graphics graphics,int i,int j)
         {
-            
-                    if (game.Cells[i, j].BombsAround > 0)
-                        graphics.DrawString(game.Cells[i, j].BombsAround.ToString(), font, GetCellTextBrush(),
-                                            i * game.CellSize + game.CellSize / 4, j * game.CellSize + game.CellSize / 4);
+         
+                    if (BombsAround > 0)
+                        graphics.DrawString(BombsAround.ToString(), font, GetCellTextBrush(),
+                                            i * Game.CellSize + Game.CellSize / 4, j * Game.CellSize + Game.CellSize / 4);
 
-                    if (game.Cells[i, j].BombsAround == -1)
-                        graphics.DrawImage(bomb, i * game.CellSize, j * game.CellSize);
+                    if (BombsAround == -1)
+                        graphics.DrawImage(bomb, i * Game.CellSize, j * Game.CellSize);
 
-                    if (game.Cells[i, j].CellState == CellState.Closed)
-                        graphics.FillRectangle(Brushes.DarkGray, i * game.CellSize, j * game.CellSize, game.CellSize, game.CellSize);
+                    if (CellState == CellState.Closed)
+                        graphics.FillRectangle(Brushes.DarkGray, i * Game.CellSize, j * Game.CellSize, Game.CellSize, Game.CellSize);
 
-                    if (game.Cells[i, j].CellState == CellState.Flagged)
-                        graphics.DrawImage(flag, i * game.CellSize, j * game.CellSize);
+                    if (CellState == CellState.Flagged)
+                        graphics.DrawImage(flag, i * Game.CellSize, j * Game.CellSize);
+
 
 
         }
