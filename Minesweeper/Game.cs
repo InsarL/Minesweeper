@@ -7,10 +7,10 @@ namespace Minesweeper
 {
     public class Game
     {
+        public CellState[,] cellStates;
+
         public int BombCount = 10;
         private int GameFieldSize = 9;
-        private int[,] fieldNumbersAndBombs;
-        public CellState[,] cellStates;
         private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
         private bool AreBombsGenerated = false;
         public int flagCount;
@@ -27,9 +27,9 @@ namespace Minesweeper
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
                 {
-                    if (fieldNumbersAndBombs[i, j] > 0)
-                        graphics.DrawString(fieldNumbersAndBombs[i, j].ToString(), font, GetCellTextBrush(i, j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
-                    if (fieldNumbersAndBombs[i, j] == -1)
+                    if ([i, j] > 0)
+                        graphics.DrawString(cellStates[i, j].ToString(), font, GetCellTextBrush(i, j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
+                    if (cellStates[i, j] == -1)
                         graphics.DrawImage(bomb, i * CellSize, j * CellSize);
                     if (cellStates[i, j] == CellState.Closed)
                         graphics.FillRectangle(Brushes.DarkGray, i * CellSize, j * CellSize, CellSize, CellSize);
@@ -47,7 +47,7 @@ namespace Minesweeper
         public void Restart()
         {
             AreBombsGenerated = false;
-            fieldNumbersAndBombs = new int[GameFieldSize, GameFieldSize];
+           
             cellStates = new CellState[GameFieldSize, GameFieldSize];
             flagCount = 0;
 
@@ -56,17 +56,7 @@ namespace Minesweeper
                     cellStates[i, j] = CellState.Closed;
         }
 
-        public Brush GetCellTextBrush(int i, int j)
-        {
-            switch (fieldNumbersAndBombs[i, j])
-            {
-                case 1: return Brushes.Blue;
-                case 2: return Brushes.Green;
-                case 3: return Brushes.Red;
-                case 5: return Brushes.DarkBlue;
-                default: return Brushes.DarkRed;
-            }
-        }
+      
 
         public bool IsCellInGameField(int i, int j)
         {

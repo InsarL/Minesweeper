@@ -11,6 +11,7 @@ namespace Minesweeper
         private MouseButtons smart;
         private Game game;
 
+
         public Form1()
         {
             InitializeComponent();
@@ -41,6 +42,7 @@ namespace Minesweeper
         {
             elapsedTime = elapsedTime.Add(TimeSpan.FromSeconds(1));
             elapsedTimeLabel.Text = elapsedTime.ToString();
+            
         }
 
         private void gameFieldPictureBox_MouseUp(object sender, MouseEventArgs e)

@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Minesweeper
 {
-    class Cell
+   public class Cell
     {
+        public CellState CellState;
+        public int BombsAround;
+
     }
 }
