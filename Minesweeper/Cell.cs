@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+﻿using System.Drawing;
 
 namespace Minesweeper
 {
@@ -9,9 +6,9 @@ namespace Minesweeper
     {
         public CellState CellState;
         public int BombsAround;
-        private Font font = new Font(SystemFonts.DefaultFont, FontStyle.Bold);
-        private Bitmap bomb = Properties.Resources.folder_locked_big;
-        private Bitmap flag = Properties.Resources.folder_lock;
+        private static Font font = new Font(SystemFonts.DefaultFont, FontStyle.Bold);
+        private static Bitmap bomb = Properties.Resources.folder_locked_big;
+        private static Bitmap flag = Properties.Resources.folder_lock;
 
         public Brush GetCellTextBrush()
         {

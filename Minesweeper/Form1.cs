@@ -62,10 +62,10 @@ namespace Minesweeper
             if (e.Button == MouseButtons.Right)
             {
                 game.MarkCell(x, y);
-                if (game.flagCount >= game.BombCount)
+                if (game.FlagCount >= game.BombCount)
                     bombCountLabel.Text = "Мин:" + 0;
                 else
-                    bombCountLabel.Text = "Мин:" + (game.BombCount - game.flagCount);
+                    bombCountLabel.Text = "Мин:" + (game.BombCount - game.FlagCount);
             }
 
             if (e.Button == MouseButtons.Middle

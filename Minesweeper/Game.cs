@@ -7,41 +7,40 @@ namespace Minesweeper
 {
     public class Game
     {
-        public Cell[,] Cells;
-        public int BombCount = 80;
-        private int GameFieldSize = 9;
-        private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
-        private bool AreBombsGenerated;
-        public int flagCount;
-        private Random random = new Random();
         public const int CellSize = 25;
+        public Cell[,] Cells;
+        public int BombCount = 10;
+        public int FlagCount;
         public event Action Win;
         public event Action Defeat;
-
+        private int gameFieldSize = 9;
+        private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
+        private bool areBombsGenerated;
+        private Random random = new Random();
+        
         public void Draw(Graphics graphics)
         {
-            for (int i = 0; i < GameFieldSize; i++)
-                for (int j = 0; j < GameFieldSize; j++)
+            for (int i = 0; i < gameFieldSize; i++)
+                for (int j = 0; j < gameFieldSize; j++)
                 {
                     Cells[i, j].Draw(graphics, i, j);
                 }
 
-            for (int i = 0; i <= GameFieldSize; i++)
+            for (int i = 0; i <= gameFieldSize; i++)
             {
-                graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * GameFieldSize, i * CellSize);
-                graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * GameFieldSize);
+                graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * gameFieldSize, i * CellSize);
+                graphics.DrawLine(Pens.Black, i * CellSize, 0, i * CellSize, CellSize * gameFieldSize);
             }
         }
 
         public void Restart()
         {
-            AreBombsGenerated = false;
+            areBombsGenerated = false;
+            Cells = new Cell[gameFieldSize, gameFieldSize];
+            FlagCount = 0;
 
-            Cells = new Cell[GameFieldSize, GameFieldSize];
-            flagCount = 0;
-
-            for (int i = 0; i < GameFieldSize; i++)
-                for (int j = 0; j < GameFieldSize; j++)
+            for (int i = 0; i < gameFieldSize; i++)
+                for (int j = 0; j < gameFieldSize; j++)
                 {
                     Cells[i, j] = new Cell();
                     Cells[i, j].CellState = CellState.Closed;
@@ -50,21 +49,23 @@ namespace Minesweeper
 
         public bool IsCellInGameField(int i, int j)
         {
-            return i < GameFieldSize && j < GameFieldSize && i >= 0 && j >= 0;
+            return i < gameFieldSize && j < gameFieldSize && i >= 0 && j >= 0;
         }
 
         private void GenerateRandomBombs(int x,int y)
         {
-            List<Point> allCellField = new List<Point>();
-
-            for (int i = 0; i < GameFieldSize; i++)
-                for (int j = 0; j < GameFieldSize; j++)
+            
+        List<Point> allCellField = new List<Point>();
+             
+            for (int i = 0; i < gameFieldSize; i++)
+                for (int j = 0; j < gameFieldSize; j++)
                     allCellField.Add(new Point(i, j));
 
             Point[] cellsWithBombs = allCellField.OrderBy(t => random.NextDouble())
                  .Where(point => point.X != x || point.Y != y)
                  .Take(BombCount)
                  .ToArray();
+
             foreach (Point cell in cellsWithBombs)
                 Cells[cell.X, cell.Y].BombsAround = -1;
         }
@@ -81,7 +82,6 @@ namespace Minesweeper
             foreach (var adjacentCells in eightDirections)
                 if (IsCellInGameField(x + adjacentCells.X, y + adjacentCells.Y))
                     directionsInGameField.Add(new Point(x + adjacentCells.X, y + adjacentCells.Y));
-
             return directionsInGameField;
         }
 
@@ -114,7 +114,7 @@ namespace Minesweeper
                         // В случае раскрытия клеток вокруг, мы можем выиграть или проиграть. 
                         // Для этого (чтобы цикл не открывал далее клетки на уже новом игровом поле),
                         // проверяем "А сгенерировано ли у нас поле?"
-                        if (!AreBombsGenerated)
+                        if (!areBombsGenerated)
                             return;
                     }
             }
@@ -122,14 +122,14 @@ namespace Minesweeper
 
         public void OpenCell(int x, int y)
         {
-            if (!AreBombsGenerated)
+            if (!areBombsGenerated)
             {
                 GenerateRandomBombs(x,y);
-                for (int i = 0; i < GameFieldSize; i++)
-                    for (int j = 0; j < GameFieldSize; j++)
+                for (int i = 0; i < gameFieldSize; i++)
+                    for (int j = 0; j < gameFieldSize; j++)
                         if (Cells[i, j].BombsAround == 0)
                             Cells[i, j].BombsAround = NumberBombsAroundCell(i, j);
-                AreBombsGenerated = true;
+                areBombsGenerated = true;
             }
 
             if (Cells[x, y].CellState == CellState.Flagged)
@@ -143,8 +143,8 @@ namespace Minesweeper
 
             if (Cells[x, y].CellState == CellState.Opened && Cells[x, y].BombsAround == -1)
             {
-                for (int i = 0; i < GameFieldSize; i++)
-                    for (int j = 0; j < GameFieldSize; j++)
+                for (int i = 0; i < gameFieldSize; i++)
+                    for (int j = 0; j < gameFieldSize; j++)
                         if (Cells[i, j].BombsAround == -1)
                             Cells[i, j].CellState = CellState.Opened;
                 Defeat();
@@ -163,12 +163,12 @@ namespace Minesweeper
             if (Cells[x, y].CellState == CellState.Closed)
             {
                 Cells[x, y].CellState = CellState.Flagged;
-                flagCount++;
+                FlagCount++;
             }
             else if (Cells[x, y].CellState == CellState.Flagged)
             {
                 Cells[x, y].CellState = CellState.Closed;
-                flagCount--;
+                FlagCount--;
             }
         }
     }
