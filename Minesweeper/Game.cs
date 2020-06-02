@@ -27,8 +27,8 @@ namespace Minesweeper
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
                 {
-                    if (Cells[i,j].BombsAround>0)
-                        graphics.DrawString(Cells[i, j].BombsAround.ToString(), font, GetCellTextBrush(i, j), 
+                    if (Cells[i, j].BombsAround > 0)
+                        graphics.DrawString(Cells[i, j].BombsAround.ToString(), font, Cells[i, j].GetCellTextBrush(graphics,i,j),
                                             i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
 
                     if (Cells[i, j].BombsAround == -1)
@@ -48,30 +48,22 @@ namespace Minesweeper
             }
         }
 
-        public Brush GetCellTextBrush(int i, int j)
-        {
-            switch (Cells[i, j].BombsAround)
-            {
-                case 1: return Brushes.Blue;
-                case 2: return Brushes.Green;
-                case 3: return Brushes.Red;
-                case 5: return Brushes.DarkBlue;
-                default: return Brushes.DarkRed;
-            }
-        }
+
+
         public void Restart()
         {
             AreBombsGenerated = false;
-           
-            Cells = new Cell [GameFieldSize, GameFieldSize];
+
+            Cells = new Cell[GameFieldSize, GameFieldSize];
             flagCount = 0;
 
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
-                   Cells[i, j].CellState = CellState.Closed;
+                {
+                    Cells[i, j] = new Cell();
+                    Cells[i, j].CellState = CellState.Closed;
+                }
         }
-
-      
 
         public bool IsCellInGameField(int i, int j)
         {
@@ -170,13 +162,13 @@ namespace Minesweeper
                 for (int i = 0; i < GameFieldSize; i++)
                     for (int j = 0; j < GameFieldSize; j++)
                         if (Cells[i, j].BombsAround == -1)
-                            Cells[i, j] .CellState= CellState.Opened;
+                            Cells[i, j].CellState = CellState.Opened;
                 Defeat();
             }
             int cellsClosedCount = Cells
-                .OfType<CellState>()
-                .Count(cellState => cellState == CellState.Closed ||
-                                    cellState == CellState.Flagged);
+                .Cast<Cell>()
+                .Count(cellState => cellState.CellState == CellState.Closed ||
+                                    cellState.CellState == CellState.Flagged);
 
             if (cellsClosedCount == BombCount)
                 Win();
