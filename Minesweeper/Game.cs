@@ -8,27 +8,24 @@ namespace Minesweeper
     public class Game
     {
         public Cell[,] Cells;
-
-        public int BombCount = 10;
-        public const int GameFieldSize = 9;
+        public int BombCount = 80;
+        private int GameFieldSize = 9;
         private (int X, int Y)[] eightDirections = { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1) };
-        private bool AreBombsGenerated = false;
+        private bool AreBombsGenerated;
         public int flagCount;
         private Random random = new Random();
         public const int CellSize = 25;
         public event Action Win;
         public event Action Defeat;
 
-
         public void Draw(Graphics graphics)
         {
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
                 {
-                    Cells[i, j].Draw(graphics,i, j);
+                    Cells[i, j].Draw(graphics, i, j);
                 }
 
-            
             for (int i = 0; i <= GameFieldSize; i++)
             {
                 graphics.DrawLine(Pens.Black, 0, i * CellSize, CellSize * GameFieldSize, i * CellSize);
@@ -56,7 +53,7 @@ namespace Minesweeper
             return i < GameFieldSize && j < GameFieldSize && i >= 0 && j >= 0;
         }
 
-        private void GenerateRandomBombs()
+        private void GenerateRandomBombs(int x,int y)
         {
             List<Point> allCellField = new List<Point>();
 
@@ -65,6 +62,7 @@ namespace Minesweeper
                     allCellField.Add(new Point(i, j));
 
             Point[] cellsWithBombs = allCellField.OrderBy(t => random.NextDouble())
+                 .Where(point => point.X != x || point.Y != y)
                  .Take(BombCount)
                  .ToArray();
             foreach (Point cell in cellsWithBombs)
@@ -126,7 +124,7 @@ namespace Minesweeper
         {
             if (!AreBombsGenerated)
             {
-                GenerateRandomBombs();
+                GenerateRandomBombs(x,y);
                 for (int i = 0; i < GameFieldSize; i++)
                     for (int j = 0; j < GameFieldSize; j++)
                         if (Cells[i, j].BombsAround == 0)
