@@ -7,7 +7,7 @@ namespace Minesweeper
 {
     public class Game
     {
-        public CellState[,] cellStates;
+        public Cell[,] Cells;
 
         public int BombCount = 10;
         private int GameFieldSize = 9;
@@ -27,13 +27,17 @@ namespace Minesweeper
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
                 {
-                    if ([i, j] > 0)
-                        graphics.DrawString(cellStates[i, j].ToString(), font, GetCellTextBrush(i, j), i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
-                    if (cellStates[i, j] == -1)
+                    if (Cells[i,j].BombsAround>0)
+                        graphics.DrawString(Cells[i, j].BombsAround.ToString(), font, GetCellTextBrush(i, j), 
+                                            i * CellSize + CellSize / 4, j * CellSize + CellSize / 4);
+
+                    if (Cells[i, j].BombsAround == -1)
                         graphics.DrawImage(bomb, i * CellSize, j * CellSize);
-                    if (cellStates[i, j] == CellState.Closed)
+
+                    if (Cells[i, j].CellState == CellState.Closed)
                         graphics.FillRectangle(Brushes.DarkGray, i * CellSize, j * CellSize, CellSize, CellSize);
-                    if (cellStates[i, j] == CellState.Flagged)
+
+                    if (Cells[i, j].CellState == CellState.Flagged)
                         graphics.DrawImage(flag, i * CellSize, j * CellSize);
                 }
 
@@ -44,16 +48,27 @@ namespace Minesweeper
             }
         }
 
+        public Brush GetCellTextBrush(int i, int j)
+        {
+            switch (Cells[i, j].BombsAround)
+            {
+                case 1: return Brushes.Blue;
+                case 2: return Brushes.Green;
+                case 3: return Brushes.Red;
+                case 5: return Brushes.DarkBlue;
+                default: return Brushes.DarkRed;
+            }
+        }
         public void Restart()
         {
             AreBombsGenerated = false;
            
-            cellStates = new CellState[GameFieldSize, GameFieldSize];
+            Cells = new Cell [GameFieldSize, GameFieldSize];
             flagCount = 0;
 
             for (int i = 0; i < GameFieldSize; i++)
                 for (int j = 0; j < GameFieldSize; j++)
-                    cellStates[i, j] = CellState.Closed;
+                   Cells[i, j].CellState = CellState.Closed;
         }
 
       
@@ -75,7 +90,7 @@ namespace Minesweeper
                  .Take(BombCount)
                  .ToArray();
             foreach (Point cell in cellsWithBombs)
-                fieldNumbersAndBombs[cell.X, cell.Y] = -1;
+                Cells[cell.X, cell.Y].BombsAround = -1;
         }
 
         private List<Point> CellsAroundGivenCell(int x, int y)
@@ -91,18 +106,18 @@ namespace Minesweeper
         private int NumberBombsAroundCell(int i, int j)
         {
             return CellsAroundGivenCell(i, j)
-                .Count(adjacentCells => fieldNumbersAndBombs[adjacentCells.X, adjacentCells.Y] == -1);
+                .Count(adjacentCells => Cells[adjacentCells.X, adjacentCells.Y].BombsAround == -1);
         }
 
         private void DiscoverEmptyCellsAround(int x, int y)
         {
             foreach (var adjacentCells in CellsAroundGivenCell(x, y))
             {
-                if (fieldNumbersAndBombs[adjacentCells.X, adjacentCells.Y] != -1
-                    && cellStates[adjacentCells.X, adjacentCells.Y] == CellState.Closed)
+                if (Cells[adjacentCells.X, adjacentCells.Y].BombsAround != -1
+                    && Cells[adjacentCells.X, adjacentCells.Y].CellState == CellState.Closed)
                 {
-                    cellStates[adjacentCells.X, adjacentCells.Y] = CellState.Opened;
-                    if (fieldNumbersAndBombs[adjacentCells.X, adjacentCells.Y] == 0)
+                    Cells[adjacentCells.X, adjacentCells.Y].CellState = CellState.Opened;
+                    if (Cells[adjacentCells.X, adjacentCells.Y].BombsAround == 0)
                         DiscoverEmptyCellsAround(adjacentCells.X, adjacentCells.Y);
                 }
             }
@@ -110,12 +125,12 @@ namespace Minesweeper
 
         public void SmartOpenCell(int x, int y)
         {
-            if (cellStates[x, y] == CellState.Opened)
+            if (Cells[x, y].CellState == CellState.Opened)
             {
                 int adjacentFlaggedCellCount = CellsAroundGivenCell(x, y)
-                    .Count(adjacentCells => cellStates[adjacentCells.X, adjacentCells.Y] == CellState.Flagged);
+                    .Count(adjacentCells => Cells[adjacentCells.X, adjacentCells.Y].CellState == CellState.Flagged);
 
-                if (fieldNumbersAndBombs[x, y] == adjacentFlaggedCellCount)
+                if (Cells[x, y].BombsAround == adjacentFlaggedCellCount)
                     foreach (var adjacentCells in CellsAroundGivenCell(x, y))
                     {
                         OpenCell(adjacentCells.X, adjacentCells.Y);
@@ -136,29 +151,29 @@ namespace Minesweeper
                 GenerateRandomBombs();
                 for (int i = 0; i < GameFieldSize; i++)
                     for (int j = 0; j < GameFieldSize; j++)
-                        if (fieldNumbersAndBombs[i, j] == 0)
-                            fieldNumbersAndBombs[i, j] = NumberBombsAroundCell(i, j);
+                        if (Cells[i, j].BombsAround == 0)
+                            Cells[i, j].BombsAround = NumberBombsAroundCell(i, j);
                 AreBombsGenerated = true;
             }
 
-            if (cellStates[x, y] == CellState.Flagged)
+            if (Cells[x, y].CellState == CellState.Flagged)
                 return;
 
-            if (cellStates[x, y] == CellState.Closed)
-                cellStates[x, y] = CellState.Opened;
+            if (Cells[x, y].CellState == CellState.Closed)
+                Cells[x, y].CellState = CellState.Opened;
 
-            if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == 0)
+            if (Cells[x, y].CellState == CellState.Opened && Cells[x, y].BombsAround == 0)
                 DiscoverEmptyCellsAround(x, y);
 
-            if (cellStates[x, y] == CellState.Opened && fieldNumbersAndBombs[x, y] == -1)
+            if (Cells[x, y].CellState == CellState.Opened && Cells[x, y].BombsAround == -1)
             {
                 for (int i = 0; i < GameFieldSize; i++)
                     for (int j = 0; j < GameFieldSize; j++)
-                        if (fieldNumbersAndBombs[i, j] == -1)
-                            cellStates[i, j] = CellState.Opened;
+                        if (Cells[i, j].BombsAround == -1)
+                            Cells[i, j] .CellState= CellState.Opened;
                 Defeat();
             }
-            int cellsClosedCount = cellStates
+            int cellsClosedCount = Cells
                 .OfType<CellState>()
                 .Count(cellState => cellState == CellState.Closed ||
                                     cellState == CellState.Flagged);
@@ -169,14 +184,14 @@ namespace Minesweeper
 
         public void MarkCell(int x, int y)
         {
-            if (cellStates[x, y] == CellState.Closed)
+            if (Cells[x, y].CellState == CellState.Closed)
             {
-                cellStates[x, y] = CellState.Flagged;
+                Cells[x, y].CellState = CellState.Flagged;
                 flagCount++;
             }
-            else if (cellStates[x, y] == CellState.Flagged)
+            else if (Cells[x, y].CellState == CellState.Flagged)
             {
-                cellStates[x, y] = CellState.Closed;
+                Cells[x, y].CellState = CellState.Closed;
                 flagCount--;
             }
         }

@@ -11,7 +11,6 @@ namespace Minesweeper
         private MouseButtons smart;
         private Game game;
 
-
         public Form1()
         {
             InitializeComponent();
@@ -34,8 +33,11 @@ namespace Minesweeper
         private void gameFieldPictureBox_Paint(object sender, PaintEventArgs e)
         {
             game.Draw(e.Graphics);
-            if (game.IsCellInGameField(illumination.X, illumination.Y) && game.cellStates[illumination.X, illumination.Y] == CellState.Closed)
-                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * game.CellSize, illumination.Y * game.CellSize, game.CellSize, game.CellSize);
+            if (game.IsCellInGameField(illumination.X, illumination.Y)
+                && game.Cells[illumination.X, illumination.Y].CellState == CellState.Closed)
+
+                e.Graphics.FillRectangle(Brushes.Gray, illumination.X * game.CellSize,
+                    illumination.Y * game.CellSize, game.CellSize, game.CellSize);
         }
 
         private void timer_Tick(object sender, EventArgs e)
